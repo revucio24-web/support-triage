@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
-<meta name="description" content="Ersteinschaetzung fuer IT-Vorgaenge der Stadtverwaltung - laeuft offline, ohne Datenuebertragung.">
-<title>Vorgangs-Triage - Ersteinschaetzung fuer IT-Vorgaenge</title>
+<meta name="description" content="Ersteinschätzung für IT-Vorgänge der Stadtverwaltung - läuft offline, ohne Datenübertragung.">
+<title>Vorgangs-Triage - Ersteinschätzung für IT-Vorgänge</title>
 <style>
   :root{
     --bg:#0b1020; --bg2:#111a33; --card:#151f3d; --line:#2b3a68;
@@ -104,38 +104,38 @@
 
   <header>
     <div class="logo"><span class="dot" aria-hidden="true">&#9889;</span> Vorgangs-Triage</div>
-    <p>Ersteinschaetzung fuer IT-Vorgaenge &mdash; Kategorie, Prioritaet, Loesung</p>
-    <span class="privacy"><span aria-hidden="true">&#128274;</span> Laeuft offline &middot; keine Datenuebertragung</span>
+    <p>Ersteinschätzung für IT-Vorgänge &mdash; Kategorie, Priorität, Lösung</p>
+    <span class="privacy"><span aria-hidden="true">&#128274;</span> Läuft offline &middot; keine Datenübertragung</span>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button id="tab-new" role="tab" aria-selected="true" aria-controls="view-new">Erfassung</button>
-    <button id="tab-list" role="tab" aria-selected="false" aria-controls="view-list">Vorgaenge<span class="badge" id="cnt">0</span></button>
+    <button id="tab-list" role="tab" aria-selected="false" aria-controls="view-list">Vorgänge<span class="badge" id="cnt">0</span></button>
   </nav>
 
   <main id="main">
 
   <div id="view-new" role="tabpanel" aria-labelledby="tab-new">
     <div class="card">
-      <label class="lbl" for="txt">Stoerung oder Anforderung beschreiben</label>
-      <textarea id="txt" aria-describedby="txt-hint" placeholder="z. B. Die AS/400-Sitzung bricht seit heute staendig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."></textarea>
+      <label class="lbl" for="txt">Störung oder Anforderung beschreiben</label>
+      <textarea id="txt" aria-describedby="txt-hint" placeholder="z. B. Die AS/400-Sitzung bricht seit heute ständig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."></textarea>
       <span id="txt-hint" class="sr">Freitext. Die Auswertung erfolgt ausschliesslich lokal im Browser.</span>
       <div class="chips" id="chips" role="group" aria-label="Beispiele"></div>
       <div class="row" style="margin-top:14px">
-        <button class="btn" id="go">Einschaetzen</button>
+        <button class="btn" id="go">Einschätzen</button>
         <button class="btn ghost" id="clr" style="flex:0 0 96px">Leeren</button>
       </div>
     </div>
-    <section class="card" id="out" aria-live="polite" aria-label="Ergebnis der Einschaetzung"></section>
+    <section class="card" id="out" aria-live="polite" aria-label="Ergebnis der Einschätzung"></section>
   </div>
 
   <div id="view-list" role="tabpanel" aria-labelledby="tab-list" hidden>
     <section class="card" aria-labelledby="stat-h">
       <h3 class="sec" id="stat-h" style="margin-top:0">Auswertung</h3>
-      <div id="stats"><div class="empty">Noch keine Vorgaenge erfasst.</div></div>
+      <div id="stats"><div class="empty">Noch keine Vorgänge erfasst.</div></div>
     </section>
     <section class="card" aria-labelledby="list-h">
-      <h3 class="sec" id="list-h" style="margin-top:0">Erfasste Vorgaenge</h3>
+      <h3 class="sec" id="list-h" style="margin-top:0">Erfasste Vorgänge</h3>
       <ul class="vlist" id="vlist"></ul>
       <button class="btn danger" id="clearall" style="margin-top:6px">Liste leeren</button>
     </section>
@@ -144,8 +144,8 @@
   </main>
 
   <footer>
-    Regelbasierte Einschaetzung &middot; vollstaendig offline im Browser<br>
-    Keine Uebertragung, kein Server, keine Protokollierung &middot; Eingaben bleiben auf dem Geraet
+    Regelbasierte Einschätzung &middot; vollständig offline im Browser<br>
+    Keine Uebertragung, kein Server, keine Protokollierung &middot; Eingaben bleiben auf dem Gerät
   </footer>
 </div>
 
@@ -153,8 +153,8 @@
 <script>
 
 /* =====================================================================
-   Vorgangs-Triage — regelbasierte Ersteinschaetzung fuer IT-Vorgaenge
-   Kommunaler Kontext. Uebergabe-Datensatz auf die Feldstruktur von OTRS
+   Vorgangs-Triage — regelbasierte Ersteinschätzung für IT-Vorgänge
+   Kommunaler Kontext. Übergabe-Datensatz auf die Feldstruktur von OTRS
    abgebildet (helpdesk.koblenz.de, "OTRS External Interface").
    ===================================================================== */
 
@@ -166,50 +166,50 @@ const KB = [
         ["sitzung",3],["green screen",3],["bildschirmmaske",3],["client access",3],
         ["host",2],["abbricht",2]],
     steps:[
-      "Geltungsbereich klaeren: Nur eine Person oder das ganze Sachgebiet? Bestimmt die Prioritaet.",
-      "Emulator-Status pruefen: Ist die Sitzung aufgebaut, oder bricht sie beim Anmelden ab?",
+      "Geltungsbereich klären: Nur eine Person oder das ganze Sachgebiet? Bestimmt die Priorität.",
+      "Emulator-Status prüfen: Ist die Sitzung aufgebaut, oder bricht sie beim Anmelden ab?",
       "Verbindung zum Host testen (Erreichbarkeit, Telnet-Port).",
       "Emulator-Profil mit einem funktionierenden Nachbarplatz vergleichen: Hostname, Port, Sitzungsname.",
-      "Bei Abbruch waehrend der Arbeit: Zeitpunkt und letzte Aktion notieren - wichtig fuer die Host-Betreuung.",
-      "Terminal-Drucker pruefen, falls Ausdrucke nicht ankommen (eigene Warteschlange am Host).",
-      "Bei mehreren betroffenen Plaetzen sofort an die Host-Betreuung - dann liegt es nicht am Arbeitsplatz."
+      "Bei Abbruch während der Arbeit: Zeitpunkt und letzte Aktion notieren - wichtig für die Host-Betreuung.",
+      "Terminal-Drucker prüfen, falls Ausdrucke nicht ankommen (eigene Warteschlange am Host).",
+      "Bei mehreren betroffenen Plätzen sofort an die Host-Betreuung - dann liegt es nicht am Arbeitsplatz."
     ],
-    reply:"Guten Tag,\n\nich kuemmere mich um den AS/400-Zugang. Damit ich es schnell eingrenzen kann:\n\n1) Bricht die Sitzung schon beim Anmelden ab, oder erst waehrend der Arbeit?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n3) Seit wann tritt es auf?\n\nBitte lassen Sie die Fehlermeldung wenn moeglich auf dem Bildschirm stehen. Ich pruefe parallel die Verbindung zum Host.",
-    esc:"An die Host-/AS/400-Betreuung, sobald mehrere Arbeitsplaetze oder ein ganzes Sachgebiet betroffen sind - dann ist die Ursache nicht am Endgeraet zu suchen."
+    reply:"Guten Tag,\n\nich kümmere mich um den AS/400-Zugang. Damit ich es schnell eingrenzen kann:\n\n1) Bricht die Sitzung schon beim Anmelden ab, oder erst während der Arbeit?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n3) Seit wann tritt es auf?\n\nBitte lassen Sie die Fehlermeldung wenn möglich auf dem Bildschirm stehen. Ich prüfe parallel die Verbindung zum Host.",
+    esc:"An die Host-/AS/400-Betreuung, sobald mehrere Arbeitsplätze oder ein ganzes Sachgebiet betroffen sind - dann ist die Ursache nicht am Endgerät zu suchen."
   },
   {
     id:"fach", name:"Fachverfahren", icon:"\uD83D\uDDC2\uFE0F", ziel:"4 Std", queue:"IT-Support / Fachverfahren",
     kw:[["faktura",4],["hess",4],["fachverfahren",4],["einwohner",3],["meldeamt",3],
-        ["buergerbuer",3],["bürgerbüro",3],["gewerbe",3],["bauakte",3],["wohngeld",3],
+        ["bürgerbüro",3],["bürgerbüro",3],["gewerbe",3],["bauakte",3],["wohngeld",3],
         ["kasse",3],["standesamt",3],["verfahren",2],["programm startet nicht",3],
         ["maske",2],["datensatz",2],["akte",2]],
     steps:[
       "Verfahren genau benennen: welches Verfahren, welcher Arbeitsplatz, welches Sachgebiet?",
-      "Fehlermeldung wortwoertlich erfassen (Screenshot) - Fachverfahren liefern meist einen konkreten Fehlercode.",
-      "Pruefen: Nur diese Person oder alle im Sachgebiet? Nur dieser Vorgang oder jeder?",
-      "Berechtigungen im Verfahren pruefen - Rollen sind oft verfahrensintern, nicht nur im Verzeichnisdienst.",
-      "Bei zentralem Betrieb: Datenbank- und Schnittstellenverbindung pruefen.",
+      "Fehlermeldung wortwörtlich erfassen (Screenshot) - Fachverfahren liefern meist einen konkreten Fehlercode.",
+      "Prüfen: Nur diese Person oder alle im Sachgebiet? Nur dieser Vorgang oder jeder?",
+      "Berechtigungen im Verfahren prüfen - Rollen sind oft verfahrensintern, nicht nur im Verzeichnisdienst.",
+      "Bei zentralem Betrieb: Datenbank- und Schnittstellenverbindung prüfen.",
       "Bei Herstellerfehler: Ticket beim Verfahrenshersteller mit Fehlercode, Version und Reproduktionsschritten.",
       "Ausweichweg benennen (anderer Arbeitsplatz, Papierverfahren), damit die Arbeit weitergeht."
     ],
-    reply:"Guten Tag,\n\nich nehme mich dem Problem im Fachverfahren an. Bitte senden Sie mir:\n\n1) Einen Screenshot der Fehlermeldung\n2) Die Bezeichnung des Verfahrens und Ihres Sachgebiets\n3) Ob Kolleginnen und Kollegen dasselbe Problem haben\n\nBitte lassen Sie den Vorgang, bei dem der Fehler auftrat, unveraendert - so kann die Ursache meist direkt nachvollzogen werden. Ich pruefe parallel Ihre Berechtigungen im Verfahren.",
-    esc:"An die Anwendungsbetreuung bzw. den Verfahrenshersteller bei Programm- oder Datenbankfehlern. Bei Ausfall im Kassen- oder Meldewesen zusaetzlich die Sachgebietsleitung informieren."
+    reply:"Guten Tag,\n\nich nehme mich dem Problem im Fachverfahren an. Bitte senden Sie mir:\n\n1) Einen Screenshot der Fehlermeldung\n2) Die Bezeichnung des Verfahrens und Ihres Sachgebiets\n3) Ob Kolleginnen und Kollegen dasselbe Problem haben\n\nBitte lassen Sie den Vorgang, bei dem der Fehler auftrat, unverändert - so kann die Ursache meist direkt nachvollzogen werden. Ich prüfe parallel Ihre Berechtigungen im Verfahren.",
+    esc:"An die Anwendungsbetreuung bzw. den Verfahrenshersteller bei Programm- oder Datenbankfehlern. Bei Ausfall im Kassen- oder Meldewesen zusätzlich die Sachgebietsleitung informieren."
   },
   {
     id:"acc", name:"Konto & Anmeldung", icon:"\uD83D\uDD11", ziel:"1 Std", queue:"IT-Support / Accounts",
     kw:[["passwort",4],["anmeld",4],["login",4],["gesperrt",4],["konto",3],["benutzerkonto",4],
         ["domäne",3],["domaene",3],["vergessen",3],["abgelaufen",3],["sperre",3],["benutzername",3]],
     steps:[
-      "Identitaet verifizieren (Rueckruf auf die hinterlegte Dienstnummer) - Pflicht vor jeder Kontomassnahme.",
-      "Kontostatus im Verzeichnisdienst pruefen: gesperrt, abgelaufen, Kennwortrichtlinie verletzt?",
-      "Konto entsperren und Kennwort zuruecksetzen - Uebergabe persoenlich oder ueber den vereinbarten sicheren Weg, nie per E-Mail im Klartext.",
-      "Kennwortrichtlinie erklaeren und auf den Passwort-Manager der Verwaltung verweisen.",
-      "Pruefen, ob die Anmeldung an mehreren Systemen scheitert (Domaene, Fachverfahren, VPN).",
-      "Fehlversuche im Protokoll pruefen - geaeufte Fehlversuche koennen auf einen Angriff hindeuten.",
-      "Testanmeldung durchfuehren und bestaetigen lassen."
+      "Identität verifizieren (Rückruf auf die hinterlegte Dienstnummer) - Pflicht vor jeder Kontomaßnahme.",
+      "Kontostatus im Verzeichnisdienst prüfen: gesperrt, abgelaufen, Kennwortrichtlinie verletzt?",
+      "Konto entsperren und Kennwort zurücksetzen - Übergabe persönlich oder ueber den vereinbarten sicheren Weg, nie per E-Mail im Klartext.",
+      "Kennwortrichtlinie erklären und auf den Passwort-Manager der Verwaltung verweisen.",
+      "Prüfen, ob die Anmeldung an mehreren Systemen scheitert (Domäne, Fachverfahren, VPN).",
+      "Fehlversuche im Protokoll prüfen - gehäufte Fehlversuche können auf einen Angriff hindeuten.",
+      "Testanmeldung durchführen und bestätigen lassen."
     ],
-    reply:"Guten Tag,\n\nich habe Ihr Konto entsperrt und ein neues Kennwort vergeben. Aus Sicherheitsgruenden teile ich es Ihnen nicht per E-Mail mit, sondern uebergebe es Ihnen auf dem ueblichen Weg.\n\nBitte aendern Sie es bei der ersten Anmeldung und beachten Sie die Kennwortrichtlinie der Verwaltung. Sollten Sie sich danach nicht anmelden koennen, melden Sie sich bitte kurz - dann pruefe ich die Anmeldung an den einzelnen Systemen.",
-    esc:"Sofort an die IT-Sicherheit, wenn Anmeldeversuche von fremden Adressen auftreten oder die Person eine Anmeldung nicht erkennt. Bei Verdacht auf Kontomissbrauch zusaetzlich den Datenschutzbeauftragten."
+    reply:"Guten Tag,\n\nich habe Ihr Konto entsperrt und ein neues Kennwort vergeben. Aus Sicherheitsgründen teile ich es Ihnen nicht per E-Mail mit, sondern übergebe es Ihnen auf dem üblichen Weg.\n\nBitte ändern Sie es bei der ersten Anmeldung und beachten Sie die Kennwortrichtlinie der Verwaltung. Sollten Sie sich danach nicht anmelden können, melden Sie sich bitte kurz - dann prüfe ich die Anmeldung an den einzelnen Systemen.",
+    esc:"Sofort an die IT-Sicherheit, wenn Anmeldeversuche von fremden Adressen auftreten oder die Person eine Anmeldung nicht erkennt. Bei Verdacht auf Kontomissbrauch zusätzlich den Datenschutzbeauftragten."
   },
   {
     id:"perm", name:"Berechtigungen & Freigaben", icon:"\uD83D\uDD12", ziel:"4 Std", queue:"IT-Support / Berechtigungen",
@@ -217,16 +217,16 @@ const KB = [
         ["rechte",4],["rolle",3],["sachgebiet",3],["netzlaufwerk",4],["kein zugriff",4],
         ["darf nicht",3],["freischalten",4]],
     steps:[
-      "Bedarf klaeren: welche Ressource, welche Rechte, welche Aufgabe steht dahinter?",
-      "Genehmigung des Sachgebiets einholen - Rechte werden nie auf muendliche Bitte allein vergeben.",
-      "Rollenkonzept pruefen: Rechte kommen ueber Gruppen, nicht ueber Einzelzuweisungen.",
-      "Pruefen, ob eine gleichwertige Rolle existiert, die den Bedarf bereits abdeckt.",
-      "Zuordnung vornehmen und die Aenderung dokumentieren (wer, wann, auf wessen Antrag).",
+      "Bedarf klären: welche Ressource, welche Rechte, welche Aufgabe steht dahinter?",
+      "Genehmigung des Sachgebiets einholen - Rechte werden nie auf mündliche Bitte allein vergeben.",
+      "Rollenkonzept prüfen: Rechte kommen ueber Gruppen, nicht ueber Einzelzuweisungen.",
+      "Prüfen, ob eine gleichwertige Rolle existiert, die den Bedarf bereits abdeckt.",
+      "Zuordnung vornehmen und die Änderung dokumentieren (wer, wann, auf wessen Antrag).",
       "Neuanmeldung veranlassen - Gruppenrechte greifen oft erst nach erneuter Anmeldung.",
-      "Zugriff testen und bestaetigen lassen."
+      "Zugriff testen und bestätigen lassen."
     ],
-    reply:"Guten Tag,\n\nfuer die Freigabe benoetige ich die Genehmigung Ihres Sachgebiets - das ist bei Rechten auf Akten und Laufwerke so vorgesehen.\n\nSobald die Genehmigung vorliegt, richte ich den Zugriff ein und melde mich mit der Bestaetigung. Bitte melden Sie sich danach einmal neu an, damit die Berechtigung wirksam wird.",
-    esc:"An die IT-Sicherheit bzw. den Datenschutzbeauftragten, wenn es um erhoehte Rechte, Aktenzugriff ueber Sachgebietsgrenzen oder personenbezogene Daten geht."
+    reply:"Guten Tag,\n\nfür die Freigabe benötige ich die Genehmigung Ihres Sachgebiets - das ist bei Rechten auf Akten und Laufwerke so vorgesehen.\n\nSobald die Genehmigung vorliegt, richte ich den Zugriff ein und melde mich mit der Bestätigung. Bitte melden Sie sich danach einmal neu an, damit die Berechtigung wirksam wird.",
+    esc:"An die IT-Sicherheit bzw. den Datenschutzbeauftragten, wenn es um erhöhte Rechte, Aktenzugriff ueber Sachgebietsgrenzen oder personenbezogene Daten geht."
   },
   {
     id:"prt", name:"Drucken & Scannen", icon:"\uD83D\uDDA8\uFE0F", ziel:"2 Std", queue:"IT-Support / Peripherie",
@@ -234,16 +234,16 @@ const KB = [
         ["scanner",4],["scan",3],["formular",2],["druckauftrag",4],["kopierer",3],
         ["kassendrucker",4],["bon",3]],
     steps:[
-      "Geraet und Standort klaeren (Raumnummer) - bei Buergerbuer und Kasse zuerst, weil dort Publikumsverkehr laeuft.",
-      "Status am Geraet pruefen: Display, Fehlerlampe, Papier, Toner.",
-      "Warteschlange am Arbeitsplatz kontrollieren und haengende Auftraege entfernen.",
-      "Druckdienst neu starten, Treiber und Anschluss pruefen, Testseite drucken.",
-      "Bei Kassendruckern: Bondrucker ist ein eigenes Geraet mit eigener Anbindung - Kassenfunktion separat pruefen.",
-      "Ausweichgeraet benennen, damit der Publikumsverkehr nicht stockt.",
+      "Gerät und Standort klären (Raumnummer) - bei Bürgerbüro und Kasse zuerst, weil dort Publikumsverkehr läuft.",
+      "Status am Gerät prüfen: Display, Fehlerlampe, Papier, Toner.",
+      "Warteschlange am Arbeitsplatz kontrollieren und hängende Aufträge entfernen.",
+      "Druckdienst neu starten, Treiber und Anschluss prüfen, Testseite drucken.",
+      "Bei Kassendruckern: Bondrucker ist ein eigenes Gerät mit eigener Anbindung - Kassenfunktion separat prüfen.",
+      "Ausweichgerät benennen, damit der Publikumsverkehr nicht stockt.",
       "Bei Scannern: Scan-Zielordner, Berechtigung und Scan-Profil kontrollieren."
     ],
-    reply:"Guten Tag,\n\nich kuemmere mich um das Druckproblem. Bitte nennen Sie mir die Raumnummer und ob am Geraet eine Fehlermeldung erscheint.\n\nFalls Sie am Publikumsschalter arbeiten, nennen Sie mir das bitte dazu - dann kuemmere ich mich vorrangig darum und benenne Ihnen sofort ein Ausweichgeraet.",
-    esc:"An den Druckerserver-/Netzwerkbetrieb, wenn mehrere Geraete oder ein ganzes Sachgebiet betroffen sind. Bei Ausfall im Buergerbuer zusaetzlich die Sachgebietsleitung informieren."
+    reply:"Guten Tag,\n\nich kümmere mich um das Druckproblem. Bitte nennen Sie mir die Raumnummer und ob am Gerät eine Fehlermeldung erscheint.\n\nFalls Sie am Publikumsschalter arbeiten, nennen Sie mir das bitte dazu - dann kümmere ich mich vorrangig darum und benenne Ihnen sofort ein Ausweichgerät.",
+    esc:"An den Druckerserver-/Netzwerkbetrieb, wenn mehrere Geräte oder ein ganzes Sachgebiet betroffen sind. Bei Ausfall im Bürgerbüro zusätzlich die Sachgebietsleitung informieren."
   },
   {
     id:"mail", name:"E-Mail & Besprechungen", icon:"\u2709\uFE0F", ziel:"2 Std", queue:"IT-Support / Mail",
@@ -252,15 +252,15 @@ const KB = [
         ["empfangen",3],["mail",3],["senden",2]],
     steps:[
       "Eingrenzen: Senden, Empfangen oder beides? Nur ein Ordner oder das ganze Postfach?",
-      "Postfachgroesse pruefen - ein volles Postfach blockiert den Empfang.",
+      "Postfachgröße prüfen - ein volles Postfach blockiert den Empfang.",
       "Zustand des Postfachs und der Anmeldung im Profil kontrollieren.",
-      "Programm neu starten; bei Auffaelligkeiten im abgesicherten Modus testen.",
+      "Programm neu starten; bei Auffälligkeiten im abgesicherten Modus testen.",
       "Web-Zugriff testen - unterscheidet Programm- von Serverproblem.",
-      "Bei Kalendereinladungen: Stellvertretungen und Verteiler pruefen.",
-      "Bei dienstlich wichtigen Nachrichten das Zustellprotokoll pruefen, nicht nur den Client."
+      "Bei Kalendereinladungen: Stellvertretungen und Verteiler prüfen.",
+      "Bei dienstlich wichtigen Nachrichten das Zustellprotokoll prüfen, nicht nur den Client."
     ],
-    reply:"Guten Tag,\n\nvielen Dank fuer die Meldung. Damit ich es schnell eingrenzen kann:\n\n1) Koennen Sie Nachrichten senden, empfangen, oder beides nicht?\n2) Tritt es im Programm und im Web-Zugriff auf?\n\nIch pruefe parallel die Postfachgroesse und die Serverseite. Bei dienstlich wichtigen Nachrichten pruefe ich zusaetzlich das Zustellprotokoll.",
-    esc:"An den Mailbetrieb, wenn Zustellungen verzoegert oder verloren gehen oder das Postfach zentral betroffen ist."
+    reply:"Guten Tag,\n\nvielen Dank für die Meldung. Damit ich es schnell eingrenzen kann:\n\n1) Können Sie Nachrichten senden, empfangen, oder beides nicht?\n2) Tritt es im Programm und im Web-Zugriff auf?\n\nIch prüfe parallel die Postfachgröße und die Serverseite. Bei dienstlich wichtigen Nachrichten prüfe ich zusätzlich das Zustellprotokoll.",
+    esc:"An den Mailbetrieb, wenn Zustellungen verzögert oder verloren gehen oder das Postfach zentral betroffen ist."
   },
   {
     id:"hw", name:"Arbeitsplatz & Hardware", icon:"\uD83D\uDCBB", ziel:"4 Std", queue:"IT-Support / Hardware",
@@ -269,15 +269,15 @@ const KB = [
         ["defekt",3],["startet nicht",4],["geht nicht an",4],["flackert",3],["akku",3]],
     steps:[
       "Fehlerbild aufnehmen: was genau, seit wann, ging ein Ereignis voraus (Sturz, Umstellung, Update)?",
-      "Stromversorgung pruefen: Netzteil, Kabel, Steckdose, Ladestatus.",
-      "Externe Geraete abstecken und neu starten (Minimalkonfiguration).",
-      "Bei Dockingstation: anderen Anschluss und anderes Kabel testen, Firmware-Stand pruefen.",
+      "Stromversorgung prüfen: Netzteil, Kabel, Steckdose, Ladestatus.",
+      "Externe Geräte abstecken und neu starten (Minimalkonfiguration).",
+      "Bei Dockingstation: anderen Anschluss und anderes Kabel testen, Firmware-Stand prüfen.",
       "Hardware-Diagnose des Herstellers starten.",
-      "Ersatzgeraet bereitstellen, damit die Arbeit weitergeht - defektes Geraet fuer Garantie/Austausch erfassen.",
-      "Bei Geraeten mit personenbezogenen Daten vor Weitergabe an den Service die Datentraeger-Vorgaben beachten."
+      "Ersatzgerät bereitstellen, damit die Arbeit weitergeht - defektes Gerät für Garantie/Austausch erfassen.",
+      "Bei Geräten mit personenbezogenen Daten vor Weitergabe an den Service die Datenträger-Vorgaben beachten."
     ],
-    reply:"Guten Tag,\n\nich habe Ihre Meldung aufgenommen. Bitte nennen Sie mir:\n\n1) Startet das Geraet noch und erscheint eine Fehlermeldung?\n2) Seit wann tritt es auf?\n\nFalls das Geraet nicht nutzbar ist, stelle ich kurzfristig ein Ersatzgeraet bereit. Nennen Sie mir dafuer bitte Ihren Standort und Ihr Sachgebiet.",
-    esc:"An den Hardware-Service bei Garantiefaellen oder Datentraegerausfall. Bei Geraeten mit personenbezogenen Daten zusaetzlich die Vorgaben zum Datentraegeraustausch beachten."
+    reply:"Guten Tag,\n\nich habe Ihre Meldung aufgenommen. Bitte nennen Sie mir:\n\n1) Startet das Gerät noch und erscheint eine Fehlermeldung?\n2) Seit wann tritt es auf?\n\nFalls das Gerät nicht nutzbar ist, stelle ich kurzfristig ein Ersatzgerät bereit. Nennen Sie mir dafür bitte Ihren Standort und Ihr Sachgebiet.",
+    esc:"An den Hardware-Service bei Garantiefällen oder Datenträgerausfall. Bei Geräten mit personenbezogenen Daten zusätzlich die Vorgaben zum Datenträgeraustausch beachten."
   },
   {
     id:"sw", name:"Software & Installation", icon:"\uD83E\uDDE9", ziel:"4 Std", queue:"IT-Support / Software",
@@ -285,16 +285,16 @@ const KB = [
         ["absturz",4],["stürzt ab",4],["fehlermeldung",3],["office",3],["excel",3],
         ["word",3],["öffnet nicht",4],["reagiert nicht",4]],
     steps:[
-      "Fehlermeldung wortwoertlich erfassen (Screenshot) - sie bestimmt den naechsten Schritt.",
-      "Pruefen: reproduzierbar? Bei anderen Personen auch?",
-      "Programm und danach das Geraet neu starten.",
-      "Lizenz- und Freigabestatus pruefen - Software wird in der Verwaltung zentral freigegeben.",
+      "Fehlermeldung wortwörtlich erfassen (Screenshot) - sie bestimmt den nächsten Schritt.",
+      "Prüfen: reproduzierbar? Bei anderen Personen auch?",
+      "Programm und danach das Gerät neu starten.",
+      "Lizenz- und Freigabestatus prüfen - Software wird in der Verwaltung zentral freigegeben.",
       "Installation ueber die Softwareverteilung anstossen statt manuell zu installieren.",
-      "Protokolle des Programms pruefen und Fehlercode dokumentieren.",
-      "Nach Updates: Version pruefen und bei Bedarf auf die vorherige Version zurueckgehen."
+      "Protokolle des Programms prüfen und Fehlercode dokumentieren.",
+      "Nach Updates: Version prüfen und bei Bedarf auf die vorherige Version zurückgehen."
     ],
-    reply:"Guten Tag,\n\nbitte senden Sie mir einen Screenshot der Fehlermeldung - damit laesst sich die Ursache meist direkt bestimmen.\n\nIch pruefe parallel, ob die Software fuer Ihren Arbeitsplatz freigegeben ist und ob eine Installation ueber die Softwareverteilung moeglich ist. Bitte nennen Sie mir, bis wann Sie das Programm benoetigen.",
-    esc:"An die Anwendungsbetreuung bzw. den Hersteller bei Programmfehlern. Bei fehlender Freigabe an die zustaendige Stelle fuer Softwarebeschaffung."
+    reply:"Guten Tag,\n\nbitte senden Sie mir einen Screenshot der Fehlermeldung - damit lässt sich die Ursache meist direkt bestimmen.\n\nIch prüfe parallel, ob die Software für Ihren Arbeitsplatz freigegeben ist und ob eine Installation ueber die Softwareverteilung möglich ist. Bitte nennen Sie mir, bis wann Sie das Programm benötigen.",
+    esc:"An die Anwendungsbetreuung bzw. den Hersteller bei Programmfehlern. Bei fehlender Freigabe an die zuständige Stelle für Softwarebeschaffung."
   },
   {
     id:"sec", name:"Sicherheit & Datenschutz", icon:"\uD83D\uDEE1\uFE0F", ziel:"15 Min", queue:"IT-Sicherheit",
@@ -303,16 +303,16 @@ const KB = [
         ["gehackt",4],["fremde anmeldung",4],["erpressung",5],["betrug",4],["trojaner",4],
         ["datenabfluss",5]],
     steps:[
-      "SOFORT: Geraet vom Netz trennen (Netzwerkkabel ziehen, WLAN aus) - Ausbreitung verhindern.",
-      "Nichts loeschen, nichts neu starten, keine Dateien oeffnen - Spuren sichern.",
-      "IT-Sicherheit und Datenschutzbeauftragten informieren - keine Eigenreparatur, keine eigene Einschaetzung der Meldewege.",
-      "Bei personenbezogenen Daten den Vorfall als Datenschutzvorfall behandeln; die Meldung an die Aufsichtsbehoerde ist Sache der dafuer bestimmten Stelle.",
-      "Betroffene Konten sperren, Kennwoerter aller genutzten Zugaenge aendern lassen.",
-      "Bei verdaechtiger E-Mail: Kopfzeilen sichern, Mail nicht weiterleiten, an die Meldeadresse geben.",
-      "Vorfall dokumentieren: Zeitpunkt, Beobachtung, betroffene Systeme, bereits getroffene Massnahmen."
+      "SOFORT: Gerät vom Netz trennen (Netzwerkkabel ziehen, WLAN aus) - Ausbreitung verhindern.",
+      "Nichts löschen, nichts neu starten, keine Dateien öffnen - Spuren sichern.",
+      "IT-Sicherheit und Datenschutzbeauftragten informieren - keine Eigenreparatur, keine eigene Einschätzung der Meldewege.",
+      "Bei personenbezogenen Daten den Vorfall als Datenschutzvorfall behandeln; die Meldung an die Aufsichtsbehörde ist Sache der dafür bestimmten Stelle.",
+      "Betroffene Konten sperren, Kennwörter aller genutzten Zugänge ändern lassen.",
+      "Bei verdächtiger E-Mail: Kopfzeilen sichern, Mail nicht weiterleiten, an die Meldeadresse geben.",
+      "Vorfall dokumentieren: Zeitpunkt, Beobachtung, betroffene Systeme, bereits getroffene Maßnahmen."
     ],
-    reply:"WICHTIG: Bitte trennen Sie das Geraet sofort vom Netzwerk (Netzwerkkabel ziehen, WLAN ausschalten) und oeffnen Sie keine Dateien mehr.\n\nBitte loeschen Sie nichts und starten Sie das Geraet nicht neu - die Ursache muss nachvollziehbar bleiben. Ich habe den Vorfall an die IT-Sicherheit und den Datenschutz gemeldet.\n\nVielen Dank fuer die schnelle Meldung - genau richtig gehandelt.",
-    esc:"IMMER sofort an IT-Sicherheit und Datenschutzbeauftragten - niemals selbst reparieren. Die Entscheidung ueber Meldungen an die Aufsichtsbehoerde liegt bei diesen Stellen, nicht beim Erstkontakt."
+    reply:"WICHTIG: Bitte trennen Sie das Gerät sofort vom Netzwerk (Netzwerkkabel ziehen, WLAN ausschalten) und öffnen Sie keine Dateien mehr.\n\nBitte löschen Sie nichts und starten Sie das Gerät nicht neu - die Ursache muss nachvollziehbar bleiben. Ich habe den Vorfall an die IT-Sicherheit und den Datenschutz gemeldet.\n\nVielen Dank für die schnelle Meldung - genau richtig gehandelt.",
+    esc:"IMMER sofort an IT-Sicherheit und Datenschutzbeauftragten - niemals selbst reparieren. Die Entscheidung ueber Meldungen an die Aufsichtsbehörde liegt bei diesen Stellen, nicht beim Erstkontakt."
   },
   {
     id:"tel", name:"Telefonie & Erreichbarkeit", icon:"\uD83D\uDCDE", ziel:"2 Std", queue:"IT-Support / Telefonie",
@@ -321,14 +321,14 @@ const KB = [
         ["weiterleiten",3]],
     steps:[
       "Eingrenzen: nur ein Apparat oder die Anlage? Eingehend, ausgehend oder beides?",
-      "Geraet pruefen: Stromversorgung, Netzwerkanschluss, Headset korrekt gesteckt und ausgewaehlt.",
-      "Freigaben fuer Mikrofon und Kamera im Betriebssystem und im Programm kontrollieren.",
-      "Registrierungsstatus der Nebenstelle pruefen, Testanruf durchfuehren.",
-      "Rufumleitung und Stellvertretungsregeln pruefen - haeufige Ursache fuer nicht erreichbar.",
+      "Gerät prüfen: Stromversorgung, Netzwerkanschluss, Headset korrekt gesteckt und ausgewählt.",
+      "Freigaben für Mikrofon und Kamera im Betriebssystem und im Programm kontrollieren.",
+      "Registrierungsstatus der Nebenstelle prüfen, Testanruf durchführen.",
+      "Rufumleitung und Stellvertretungsregeln prüfen - häufige Ursache für nicht erreichbar.",
       "Bei Publikumsnummern vorrangig behandeln und eine Ausweichnummer bekannt geben."
     ],
-    reply:"Guten Tag,\n\nich pruefe die Telefonie fuer Sie. Bitte testen Sie kurz:\n\n1) Koennen Sie angerufen werden?\n2) Klappt das Waehlen?\n3) Ist Ihr Headset im Programm ausgewaehlt?\n\nFalls eine Publikumsnummer betroffen ist, melden Sie mir das bitte sofort - dann behandle ich es vorrangig und richte eine Ausweichnummer ein.",
-    esc:"An die Telefonie-Betreuung bzw. den Anbieter, wenn die Anlage oder mehrere Nebenstellen betroffen sind. Bei Ausfall einer Publikumsnummer zusaetzlich die Sachgebietsleitung."
+    reply:"Guten Tag,\n\nich prüfe die Telefonie für Sie. Bitte testen Sie kurz:\n\n1) Können Sie angerufen werden?\n2) Klappt das Wählen?\n3) Ist Ihr Headset im Programm ausgewählt?\n\nFalls eine Publikumsnummer betroffen ist, melden Sie mir das bitte sofort - dann behandle ich es vorrangig und richte eine Ausweichnummer ein.",
+    esc:"An die Telefonie-Betreuung bzw. den Anbieter, wenn die Anlage oder mehrere Nebenstellen betroffen sind. Bei Ausfall einer Publikumsnummer zusätzlich die Sachgebietsleitung."
   },
   {
     id:"dat", name:"Daten & Wiederherstellung", icon:"\uD83D\uDCBE", ziel:"2 Std", queue:"IT-Support / Daten",
@@ -336,37 +336,37 @@ const KB = [
         ["wiederherstell",4],["papierkorb",4],["version",3],["versehentlich",3],
         ["überschrieben",4]],
     steps:[
-      "Sofort: nichts mehr auf dem betroffenen Laufwerk speichern - jede Schreiboperation kann ueberschreiben.",
-      "Papierkorb bzw. Gelöschte Elemente pruefen.",
-      "Versionsverlauf des Speicherorts pruefen (Netzlaufwerk-Snapshots, Dokumentenverwaltung).",
-      "Sicherungskatalog pruefen: letzte Sicherung, Aufbewahrungszeit, betroffener Pfad.",
-      "Wiederherstellung durchfuehren und Ergebnis bestaetigen lassen.",
-      "Ursache klaeren und dokumentieren - bei wiederholtem Verlust die Ablagegewohnheit ansprechen.",
-      "Bei personenbezogenen Daten pruefen, ob ein Datenschutzvorfall vorliegt."
+      "Sofort: nichts mehr auf dem betroffenen Laufwerk speichern - jede Schreiboperation kann überschreiben.",
+      "Papierkorb bzw. Gelöschte Elemente prüfen.",
+      "Versionsverlauf des Speicherorts prüfen (Netzlaufwerk-Snapshots, Dokumentenverwaltung).",
+      "Sicherungskatalog prüfen: letzte Sicherung, Aufbewahrungszeit, betroffener Pfad.",
+      "Wiederherstellung durchführen und Ergebnis bestätigen lassen.",
+      "Ursache klären und dokumentieren - bei wiederholtem Verlust die Ablagegewohnheit ansprechen.",
+      "Bei personenbezogenen Daten prüfen, ob ein Datenschutzvorfall vorliegt."
     ],
-    reply:"Guten Tag,\n\nbitte speichern Sie ab jetzt nichts mehr auf diesem Laufwerk - das erhoeht die Chance der Wiederherstellung.\n\nBitte nennen Sie mir Dateinamen, Speicherort und den ungefaehren Zeitpunkt der letzten Aenderung. Ich pruefe Papierkorb, Versionsverlauf und die letzte Sicherung und melde mich mit dem Ergebnis.",
-    esc:"An die Sicherungsbetreuung, wenn eine Sicherung eingespielt werden muss. Bei personenbezogenen Daten zusaetzlich an den Datenschutzbeauftragten."
+    reply:"Guten Tag,\n\nbitte speichern Sie ab jetzt nichts mehr auf diesem Laufwerk - das erhöht die Chance der Wiederherstellung.\n\nBitte nennen Sie mir Dateinamen, Speicherort und den ungefähren Zeitpunkt der letzten Änderung. Ich prüfe Papierkorb, Versionsverlauf und die letzte Sicherung und melde mich mit dem Ergebnis.",
+    esc:"An die Sicherungsbetreuung, wenn eine Sicherung eingespielt werden muss. Bei personenbezogenen Daten zusätzlich an den Datenschutzbeauftragten."
   },
   {
     id:"net", name:"Netzwerk & Verbindung", icon:"\uD83C\uDF10", ziel:"1 Std", queue:"IT-Support / Netzwerk",
     kw:[["netzwerk",4],["internet",4],["wlan",4],["vpn",4],["verbindung",3],
         ["netzlaufwerk",3],["langsam",3],["dns",4],["timeout",3],["host nicht erreichbar",4]],
     steps:[
-      "Geltungsbereich klaeren: ein Arbeitsplatz, ein Sachgebiet oder ein Standort?",
-      "Anschluss pruefen: Netzwerkkabel gesteckt, WLAN verbunden, richtiges Netz.",
-      "Zweiten Arbeitsplatz im selben Bereich testen - trennt Endgeraet von Netz.",
+      "Geltungsbereich klären: ein Arbeitsplatz, ein Sachgebiet oder ein Standort?",
+      "Anschluss prüfen: Netzwerkkabel gesteckt, WLAN verbunden, richtiges Netz.",
+      "Zweiten Arbeitsplatz im selben Bereich testen - trennt Endgerät von Netz.",
       "Netzkonfiguration erneuern.",
-      "Namensaufloesung testen: geht die Adresse, aber kein Name, liegt es an der Namensaufloesung.",
-      "Bei VPN: Tunnel-Status, Zertifikatsgueltigkeit und Portal-Erreichbarkeit pruefen.",
+      "Namensauflösung testen: geht die Adresse, aber kein Name, liegt es an der Namensauflösung.",
+      "Bei VPN: Tunnel-Status, Zertifikatsgültigkeit und Portal-Erreichbarkeit prüfen.",
       "Bei mehreren Betroffenen sofort an den Netzbetrieb - dann ist es kein Arbeitsplatzproblem."
     ],
-    reply:"Guten Tag,\n\nich pruefe die Netzwerkverbindung. Bitte testen Sie kurz:\n\n1) Ist das Netzwerkkabel gesteckt bzw. sind Sie im richtigen WLAN?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n\nBitte lassen Sie die Fehlermeldung wenn moeglich stehen. Bei mehreren Betroffenen gebe ich es sofort an den Netzbetrieb weiter.",
-    esc:"Sofort an den Netzbetrieb, wenn mehrere Arbeitsplaetze oder ein Standort betroffen sind oder ein zentrales Verfahren nicht erreichbar ist."
+    reply:"Guten Tag,\n\nich prüfe die Netzwerkverbindung. Bitte testen Sie kurz:\n\n1) Ist das Netzwerkkabel gesteckt bzw. sind Sie im richtigen WLAN?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n\nBitte lassen Sie die Fehlermeldung wenn möglich stehen. Bei mehreren Betroffenen gebe ich es sofort an den Netzbetrieb weiter.",
+    esc:"Sofort an den Netzbetrieb, wenn mehrere Arbeitsplätze oder ein Standort betroffen sind oder ein zentrales Verfahren nicht erreichbar ist."
   }
 ];
 
-/* ---------- 2. Prioritaetsregeln (mit OTRS-Abbildung) ---------- */
-/* OTRS-Standardprioritaeten: 1 very low, 2 low, 3 normal, 4 high, 5 very high */
+/* ---------- 2. Prioritätsregeln (mit OTRS-Abbildung) ---------- */
+/* OTRS-Standardprioritäten: 1 very low, 2 low, 3 normal, 4 high, 5 very high */
 const PRIO_RULES = [
   { p:1, label:"Kritisch", adj:"Kritische", ziel:"15 Min", color:"--p1", otrs:"5 very high",
     kw:["ransomware","verschlüsselt","erpressung","datenpanne","datenabfluss","ausfall",
@@ -375,27 +375,27 @@ const PRIO_RULES = [
         "phishing","verdacht","verdächtig","mehrere","abteilung","standort",
         "betroffen","wahlen","kasse steht","dasselbe problem","gleiches problem",
         "auch betroffen","mehrere kollegen","ganzes sachgebiet"],
-    why:"Ausfall- oder Sicherheitssignal: mehrere Beschaeftigte betroffen, Publikumsverkehr oder Datensicherheit beruehrt." },
+    why:"Ausfall- oder Sicherheitssignal: mehrere Beschäftigte betroffen, Publikumsverkehr oder Datensicherheit berührt." },
   { p:2, label:"Hoch", adj:"Hohe", ziel:"1 Std", color:"--p2", otrs:"4 high",
     kw:["amtsleitung","bürgermeister","dezernat","beigeordnete","ratssitzung","ausschuss",
         "sitzung","vorlage","frist","termin","bürgertermin","bürger","dringend","sofort",
         "heute noch","präsentation","kundentermin","vertrag"],
-    why:"Geschaeftskritischer Kontext: Leitungsebene, Gremien, Buergertermin oder Frist betroffen." },
+    why:"Geschäftskritischer Kontext: Leitungsebene, Gremien, Bürgertermin oder Frist betroffen." },
   { p:3, label:"Mittel", adj:"Mittlere", ziel:"4 Std", color:"--p3", otrs:"3 normal",
-    kw:[], why:"Standardfall: einzelne Person betroffen, Arbeit eingeschraenkt, aber ein Ausweichweg besteht." },
+    kw:[], why:"Standardfall: einzelne Person betroffen, Arbeit eingeschränkt, aber ein Ausweichweg besteht." },
   { p:4, label:"Niedrig", adj:"Niedrige", ziel:"2 Tage", color:"--p4", otrs:"2 low",
     kw:["wenn zeit","irgendwann","bei gelegenheit","kein stress","nice to have","optional",
         "kosmetisch","schön wäre","nicht dringend","unwichtig","ohne eile","keine eile",
         "eilt nicht","wenn du mal","wenn sie mal"],
-    why:"Keine Beeintraechtigung: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
+    why:"Keine Beeinträchtigung: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
 ];
 
 /* ---------- 3. Engine ---------- */
 const norm = s => s.toLowerCase()
   .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss");
 
-/* Kurze Schluesselwoerter nur als eigenes Wort pruefen, damit z. B. "lan" nicht
-   in "langsam" trifft. Laengere als Teilstring, damit Komposita erkannt werden. */
+/* Kurze Schlüsselwörter nur als eigenes Wort prüfen, damit z. B. "lan" nicht
+   in "langsam" trifft. Längere als Teilstring, damit Komposita erkannt werden. */
 function hit(text, kw){
   const k = norm(kw);
   if (k.length > 4) return text.includes(k);
@@ -403,9 +403,9 @@ function hit(text, kw){
   return new RegExp("(^|[^a-z0-9])" + e + "([^a-z0-9]|$)").test(text);
 }
 
-/* Negation nur bei Prioritaetssignalen: "keinen Termin" ist kein Termindruck.
+/* Negation nur bei Prioritätssignalen: "keinen Termin" ist kein Termindruck.
    Nicht bei der Kategorie - "kann mich nicht anmelden" ist ein Anmeldeproblem.
-   Die Pruefung endet an der Satzgrenze. */
+   Die Prüfung endet an der Satzgrenze. */
 const NEG = ["kein","keine","keinen","keiner","keinem","keines","ohne","nicht",
              "nie","niemals","kaum","weder","entgegen"];
 function negated(text, kw){
@@ -466,11 +466,11 @@ function analyze(text){
 
 /* ---------- 4. Beispiele ---------- */
 const EXAMPLES = [
-  ["AS/400 bricht ab", "Die AS/400-Sitzung bricht seit heute staendig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."],
-  ["Konto gesperrt", "Ich kann mich nicht anmelden, mein Konto ist gesperrt und ich habe in 30 Minuten einen Buergertermin am Schalter."],
-  ["Fachverfahren", "Das Fachverfahren zeigt beim Oeffnen einer Akte eine Fehlermeldung und laesst sich nicht mehr bedienen."],
-  ["Phishing-Mail", "Ich habe eine verdaechtige Mail bekommen und versehentlich auf den Link geklickt. Der Rechner reagiert jetzt sehr langsam."],
-  ["Buergerbuer-Drucker", "Der Drucker am Publikumsschalter druckt keine Formulare mehr, die Warteschlange staut sich und draussen warten Buerger."],
+  ["AS/400 bricht ab", "Die AS/400-Sitzung bricht seit heute ständig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."],
+  ["Konto gesperrt", "Ich kann mich nicht anmelden, mein Konto ist gesperrt und ich habe in 30 Minuten einen Bürgertermin am Schalter."],
+  ["Fachverfahren", "Das Fachverfahren zeigt beim Oeffnen einer Akte eine Fehlermeldung und lässt sich nicht mehr bedienen."],
+  ["Phishing-Mail", "Ich habe eine verdächtige Mail bekommen und versehentlich auf den Link geklickt. Der Rechner reagiert jetzt sehr langsam."],
+  ["Bürgerbüro-Drucker", "Der Drucker am Publikumsschalter druckt keine Formulare mehr, die Warteschlange staut sich und draussen warten Bürger."],
   ["Berechtigung", "Ich brauche Zugriff auf den Aktenordner meines Sachgebiets, meine Kollegin hat ihn auch."],
   ["Kleinigkeit", "Mein Monitorkabel sitzt etwas locker, es funktioniert aber. Kein Stress, wenn Sie mal Zeit haben."]
 ];
@@ -500,7 +500,7 @@ function restzeit(v){
   const ziel = new Date(v.erfasst).getTime() + v.zielMin * 60000;
   const diff = ziel - Date.now();
   const m = Math.round(Math.abs(diff) / 60000);
-  if (diff <= 0) return { txt:"ueberfaellig seit " + m + " Min", cls:"over" };
+  if (diff <= 0) return { txt:"überfällig seit " + m + " Min", cls:"over" };
   if (m < 60) return { txt:"noch " + m + " Min", cls: m <= 15 ? "warn" : "" };
   return { txt:"noch " + Math.floor(m/60) + " Std " + (m%60) + " Min", cls:"" };
 }
@@ -532,7 +532,7 @@ function render(r, text){
       <div class="prio" style="background:${color}">P${r.prio.p}</div>
       <div>
         <h2>${r.cat.icon} ${esc(r.cat.name)}</h2>
-        <div class="sub">${esc(r.prio.adj)} Prioritaet &middot; ${esc(r.type)}</div>
+        <div class="sub">${esc(r.prio.adj)} Priorität &middot; ${esc(r.type)}</div>
       </div>
     </div>
 
@@ -549,10 +549,10 @@ function render(r, text){
       <span class="pill">Umfang <b>${r.chars} Zeichen</b></span>
     </div>
 
-    <h3 class="sec">Warum diese Prioritaet</h3>
+    <h3 class="sec">Warum diese Priorität</h3>
     <div class="note">
       ${esc(r.prio.why)}
-      ${r.prio.hits.length ? `<br><br><b>Ausloeser:</b> ${r.prio.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join(" ")}` : ""}
+      ${r.prio.hits.length ? `<br><br><b>Auslöser:</b> ${r.prio.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join(" ")}` : ""}
     </div>
 
     <h3 class="sec">Erkannte Signale</h3>
@@ -560,12 +560,12 @@ function render(r, text){
       ${r.hits.length ? r.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join("") : `<span class="sig">keine</span>`}
     </div>
 
-    <h3 class="sec">Loesungsschritte</h3>
+    <h3 class="sec">Lösungsschritte</h3>
     <ol class="steps">${r.cat.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
 
-    <h3 class="sec">Rueckmeldung an die meldende Person</h3>
+    <h3 class="sec">Rückmeldung an die meldende Person</h3>
     <pre class="reply" id="reply">${esc(r.cat.reply)}</pre>
-    <button class="btn ghost" id="copy" style="margin-top:10px">Rueckmeldung kopieren</button>
+    <button class="btn ghost" id="copy" style="margin-top:10px">Rückmeldung kopieren</button>
 
     <h3 class="sec">Weitergabe</h3>
     <div class="esc">${esc(r.cat.esc)}</div>
@@ -577,11 +577,11 @@ function render(r, text){
 
     <h3 class="sec">Vorgang ablegen</h3>
     <button class="btn" id="save">In Vorgangsliste uebernehmen</button>
-    <button class="btn ghost" id="export" style="margin-top:9px">OTRS-Uebergabe erzeugen</button>
+    <button class="btn ghost" id="export" style="margin-top:9px">OTRS-Übergabe erzeugen</button>
   `;
   $("out").classList.add("show");
 
-  $("copy").onclick = () => kopiere($("reply").textContent, "Rueckmeldung kopiert");
+  $("copy").onclick = () => kopiere($("reply").textContent, "Rückmeldung kopiert");
   $("save").onclick = () => {
     const list = loadAll();
     list.unshift({ ...aktuell });
@@ -591,12 +591,12 @@ function render(r, text){
     $("save").disabled = true;
     $("save").textContent = "Abgelegt \u2713";
   };
-  $("export").onclick = () => kopiere(otrsDatensatz(aktuell), "OTRS-Uebergabe kopiert");
+  $("export").onclick = () => kopiere(otrsDatensatz(aktuell), "OTRS-Übergabe kopiert");
 
   tickRest();
 }
 
-/* Uebergabe-Datensatz in der Feldstruktur von OTRS */
+/* Übergabe-Datensatz in der Feldstruktur von OTRS */
 function otrsDatensatz(v){
   const titel = v.kat + " - " + v.text.replace(/\s+/g," ").slice(0, 68) + (v.text.length > 68 ? "..." : "");
   return [
@@ -614,22 +614,22 @@ function otrsDatensatz(v){
     "",
     v.text,
     "",
-    "--- Interne Notiz: Ersteinschaetzung ---",
+    "--- Interne Notiz: Ersteinschätzung ---",
     "Vorgangsreferenz: " + v.id,
     "Erfasst:          " + fmtZeit(v.erfasst),
     "Kategorie:        " + v.kat,
-    "Prioritaet:       P" + v.prio + " (" + v.prioLabel + ")  ->  OTRS " + v.otrs,
+    "Priorität:       P" + v.prio + " (" + v.prioLabel + ")  ->  OTRS " + v.otrs,
     "Ziel-Reaktion:    " + v.ziel,
     "Konfidenz:        " + v.conf + "%",
-    "Ausloeser:        " + (v.ausloeser.length ? v.ausloeser.join(", ") : "-"),
+    "Auslöser:        " + (v.ausloeser.length ? v.ausloeser.join(", ") : "-"),
     "",
-    "Loesungsschritte:",
+    "Lösungsschritte:",
     ...v.steps.map((s,i) => "  " + (i+1) + ". " + s),
     "",
     "Weitergabe:",
     "  " + v.esc,
     "",
-    "Rueckmeldung (Entwurf):",
+    "Rückmeldung (Entwurf):",
     v.reply.split("\n").map(l => "  " + l).join("\n")
   ].join("\n");
 }
@@ -652,7 +652,7 @@ function renderListe(){
 
   const st = $("stats");
   if (!list.length){
-    st.innerHTML = '<div class="empty">Noch keine Vorgaenge erfasst.</div>';
+    st.innerHTML = '<div class="empty">Noch keine Vorgänge erfasst.</div>';
   } else {
     const nachKat = {}, nachPrio = {};
     for (const v of list){
@@ -667,13 +667,13 @@ function renderListe(){
         <span class="ct">${n}</span></div>`;
     }).join("");
     st.innerHTML = `<div class="stat"><div class="lbl">Nach Kategorie</div>${balken(nachKat)}</div>
-      <div class="stat"><div class="lbl">Nach Prioritaet</div>${balken(nachPrio)}</div>
-      <div class="pill">Gesamt <b>${list.length}</b> Vorgaenge</div>`;
+      <div class="stat"><div class="lbl">Nach Priorität</div>${balken(nachPrio)}</div>
+      <div class="pill">Gesamt <b>${list.length}</b> Vorgänge</div>`;
   }
 
   const vl = $("vlist");
   if (!list.length){
-    vl.innerHTML = '<li class="empty">Keine Vorgaenge abgelegt.</li>';
+    vl.innerHTML = '<li class="empty">Keine Vorgänge abgelegt.</li>';
     return;
   }
   vl.innerHTML = list.map((v, i) => {
@@ -688,8 +688,8 @@ function renderListe(){
       <div class="tm">${esc(fmtZeit(v.erfasst))} &middot; Ziel ${esc(v.ziel)} &middot; ${esc(r.txt)}</div>
       <div class="acts">
         <button class="mini" data-open="${i}">OTRS-Datensatz</button>
-        <button class="mini" data-done="${i}">${v.status === "erledigt" ? "wieder oeffnen" : "erledigt"}</button>
-        <button class="mini del" data-del="${i}">loeschen</button>
+        <button class="mini" data-done="${i}">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
+        <button class="mini del" data-del="${i}">löschen</button>
       </div>
     </li>`;
   }).join("");
@@ -727,7 +727,7 @@ function run(){
   const txt = $("txt").value.trim();
   if (txt.length < 8){
     $("out").innerHTML = '<div class="empty"><div class="big" aria-hidden="true">&#9997;&#65039;</div>' +
-      'Bitte beschreiben Sie die Stoerung oder Anforderung - mindestens ein kurzer Satz.</div>';
+      'Bitte beschreiben Sie die Störung oder Anforderung - mindestens ein kurzer Satz.</div>';
     $("out").classList.add("show");
     return;
   }
@@ -767,13 +767,13 @@ $("vlist").addEventListener("click", e => {
     const v = list[+b.dataset.del];
     list.splice(+b.dataset.del, 1);
     saveAll(list); renderListe();
-    toast("Vorgang " + v.id + " geloescht");
+    toast("Vorgang " + v.id + " gelöscht");
   }
 });
 
 $("clearall").onclick = () => {
   if (!loadAll().length) return;
-  if (confirm("Alle Vorgaenge aus der Liste entfernen? Die Eingaben werden nur lokal geloescht.")){
+  if (confirm("Alle Vorgänge aus der Liste entfernen? Die Eingaben werden nur lokal gelöscht.")){
     saveAll([]); renderListe(); toast("Liste geleert");
   }
 };
