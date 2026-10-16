@@ -4,14 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
-<title>TriageDesk — IT-Support Ticket-Triage</title>
+<meta name="description" content="Ersteinschaetzung fuer IT-Vorgaenge der Stadtverwaltung - laeuft offline, ohne Datenuebertragung.">
+<title>Vorgangs-Triage - Ersteinschaetzung fuer IT-Vorgaenge</title>
 <style>
   :root{
-    --bg:#0b1020; --bg2:#111a33; --card:#151f3d; --line:#24325c;
-    --tx:#e8eefc; --tx2:#93a4c8; --tx3:#61729a;
-    --ac:#38bdf8; --ac2:#818cf8;
-    --p1:#ef4444; --p2:#f59e0b; --p3:#38bdf8; --p4:#64748b;
-    --ok:#22c55e;
+    --bg:#0b1020; --bg2:#111a33; --card:#151f3d; --line:#2b3a68;
+    --tx:#eef3fd; --tx2:#a8b8d8; --tx3:#7d8db5;
+    --ac:#4cc2f7; --ac2:#8f9bfa;
+    --p1:#f05252; --p2:#f0a020; --p3:#4cc2f7; --p4:#8595b8;
+    --ok:#2fbf71; --focus:#ffd166;
     --r:16px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -23,394 +24,403 @@
     padding:0 0 40px;
   }
   .wrap{max-width:680px;margin:0 auto;padding:0 16px}
-
-  /* ---------- Header ---------- */
-  header{padding:26px 0 18px;text-align:center}
-  .logo{
-    display:inline-flex;align-items:center;gap:10px;
-    font-weight:700;font-size:1.35rem;letter-spacing:-.02em;
-  }
-  .logo .dot{
-    width:34px;height:34px;border-radius:10px;flex:none;
-    background:linear-gradient(135deg,var(--ac),var(--ac2));
-    display:grid;place-items:center;font-size:18px;
-    box-shadow:0 6px 20px rgba(56,189,248,.35);
-  }
-  header p{margin:8px 0 0;color:var(--tx2);font-size:.9rem}
-
-  /* ---------- Cards ---------- */
-  .card{
-    background:linear-gradient(180deg,var(--card),var(--bg2));
-    border:1px solid var(--line); border-radius:var(--r);
-    padding:18px; margin-bottom:16px;
-  }
-  label.lbl{display:block;font-size:.8rem;font-weight:600;color:var(--tx2);
-    text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px}
-
-  textarea{
-    width:100%;min-height:104px;resize:vertical;
-    background:#0d1730;color:var(--tx);border:1px solid var(--line);
-    border-radius:12px;padding:13px 14px;font:inherit;font-size:16px;
-  }
-  textarea:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+  .skip{position:absolute;left:-9999px;top:0;z-index:200;background:var(--focus);color:#1a1200;font-weight:700;padding:10px 16px;border-radius:0 0 10px 0}
+  .skip:focus{left:0}
+  .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+  header{padding:24px 0 14px;text-align:center}
+  .logo{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:1.3rem;letter-spacing:-.02em}
+  .logo .dot{width:34px;height:34px;border-radius:10px;flex:none;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-size:18px;color:#04101f}
+  header p{margin:8px 0 0;color:var(--tx2);font-size:.88rem}
+  .privacy{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:rgba(47,191,113,.11);border:1px solid rgba(47,191,113,.4);color:#a5e6c4;border-radius:999px;padding:6px 13px;font-size:.76rem;font-weight:600}
+  nav.tabs{display:flex;gap:6px;background:#0d1730;border:1px solid var(--line);border-radius:12px;padding:5px;margin-bottom:16px}
+  nav.tabs button{flex:1;background:transparent;border:0;color:var(--tx2);font:inherit;font-weight:600;padding:11px 8px;border-radius:9px;cursor:pointer;font-size:.9rem}
+  nav.tabs button[aria-selected="true"]{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#04101f}
+  .badge{display:inline-block;background:rgba(255,255,255,.22);border-radius:999px;padding:1px 7px;font-size:.72rem;margin-left:5px;font-weight:700}
+  .card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+  label.lbl,div.lbl{display:block;font-size:.8rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px}
+  textarea{width:100%;min-height:104px;resize:vertical;background:#0d1730;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font:inherit;font-size:16px}
   textarea::placeholder{color:var(--tx3)}
-
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .chip{
-    background:#0d1730;border:1px solid var(--line);color:var(--tx2);
-    padding:8px 12px;border-radius:999px;font-size:.8rem;cursor:pointer;
-    transition:.15s;
-  }
-  .chip:active{transform:scale(.96);border-color:var(--ac);color:var(--tx)}
-
-  .btn{
-    width:100%;margin-top:14px;border:0;border-radius:12px;
-    padding:15px;font:inherit;font-weight:700;font-size:1rem;color:#04101f;
-    background:linear-gradient(135deg,var(--ac),var(--ac2));
-    cursor:pointer;transition:.15s;
-  }
-  .btn:active{transform:scale(.985)}
+  .chip{background:#0d1730;border:1px solid var(--line);color:var(--tx2);padding:8px 12px;border-radius:999px;font:inherit;font-size:.8rem;cursor:pointer}
+  .chip:active{border-color:var(--ac);color:var(--tx)}
+  .btn{width:100%;margin-top:14px;border:0;border-radius:12px;padding:15px;font:inherit;font-weight:700;font-size:1rem;color:#04101f;background:linear-gradient(135deg,var(--ac),var(--ac2));cursor:pointer}
+  .btn:disabled{opacity:.6;cursor:default}
   .btn.ghost{background:#0d1730;color:var(--tx2);border:1px solid var(--line);font-weight:600}
+  .btn.danger{background:transparent;color:#ffb4b4;border:1px solid rgba(240,82,82,.5);font-weight:600}
   .row{display:flex;gap:10px}
   .row .btn{margin-top:0}
-
-  /* ---------- Ergebnis ---------- */
   #out{display:none}
-  #out.show{display:block;animation:up .32s ease}
-  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-
-  .verdict{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
-  .prio{
-    flex:none;width:58px;height:58px;border-radius:14px;
-    display:grid;place-items:center;font-weight:800;font-size:1.05rem;color:#04101f;
-  }
-  .verdict h2{margin:0 0 3px;font-size:1.12rem;line-height:1.3}
+  #out.show{display:block}
+  .verdict{display:flex;gap:12px;align-items:flex-start;margin-bottom:6px}
+  .prio{flex:none;width:58px;height:58px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:1.05rem;color:#04101f}
+  .verdict h2{margin:0 0 3px;font-size:1.1rem;line-height:1.3}
   .verdict .sub{color:var(--tx2);font-size:.83rem}
-
+  .vorgang{display:flex;flex-wrap:wrap;align-items:center;gap:9px;border-top:1px solid var(--line);margin-top:13px;padding-top:12px}
+  .vid{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;color:var(--tx);font-size:.9rem;letter-spacing:.02em}
+  .tag{font-size:.72rem;font-weight:700;border-radius:7px;padding:3px 9px;background:rgba(76,194,247,.13);border:1px solid rgba(76,194,247,.4);color:#a5dcf8}
+  .tag.inc{background:rgba(240,82,82,.13);border-color:rgba(240,82,82,.42);color:#ffc0c0}
   .meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
-  .pill{
-    background:#0d1730;border:1px solid var(--line);border-radius:999px;
-    padding:6px 11px;font-size:.76rem;color:var(--tx2)
-  }
+  .pill{background:#0d1730;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:.76rem;color:var(--tx2)}
   .pill b{color:var(--tx);font-weight:600}
-
-  h3.sec{
-    font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;
-    color:var(--tx3);margin:22px 0 10px;font-weight:700
-  }
-
+  .pill.live b{font-variant-numeric:tabular-nums}
+  h3.sec{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin:22px 0 10px;font-weight:700}
   ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s}
-  ol.steps li{
-    counter-increment:s;position:relative;padding:11px 0 11px 42px;
-    border-bottom:1px solid rgba(36,50,92,.6);font-size:.94rem;
-  }
+  ol.steps li{counter-increment:s;position:relative;padding:11px 0 11px 42px;border-bottom:1px solid rgba(43,58,104,.6);font-size:.94rem}
   ol.steps li:last-child{border-bottom:0}
-  ol.steps li::before{
-    content:counter(s);position:absolute;left:0;top:10px;
-    width:27px;height:27px;border-radius:8px;display:grid;place-items:center;
-    background:#0d1730;border:1px solid var(--line);
-    color:var(--ac);font-size:.8rem;font-weight:700
-  }
-
+  ol.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:27px;height:27px;border-radius:8px;display:grid;place-items:center;background:#0d1730;border:1px solid var(--line);color:var(--ac);font-size:.8rem;font-weight:700}
   .signals{display:flex;flex-wrap:wrap;gap:6px}
-  .sig{
-    background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.3);
-    color:#9fd8f7;padding:4px 9px;border-radius:7px;font-size:.74rem;font-family:ui-monospace,Menlo,Consolas,monospace
-  }
-
-  pre.reply{
-    background:#0d1730;border:1px solid var(--line);border-radius:12px;
-    padding:14px;white-space:pre-wrap;word-wrap:break-word;
-    font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:#cfe0ff;margin:0;
-  }
-
-  .esc{
-    background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);
-    border-radius:12px;padding:12px 14px;font-size:.88rem;color:#ffc9c9
-  }
+  .sig{background:rgba(76,194,247,.09);border:1px solid rgba(76,194,247,.32);color:#a5dcf8;padding:4px 9px;border-radius:7px;font-size:.74rem;font-family:ui-monospace,Menlo,Consolas,monospace}
+  pre.reply{background:#0d1730;border:1px solid var(--line);border-radius:12px;padding:14px;white-space:pre-wrap;word-wrap:break-word;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:#d5e4ff;margin:0}
+  .note{background:rgba(76,194,247,.07);border:1px solid rgba(76,194,247,.3);border-radius:12px;padding:12px 14px;font-size:.88rem;color:#c2dcf3}
+  .esc{background:rgba(240,82,82,.09);border:1px solid rgba(240,82,82,.34);border-radius:12px;padding:12px 14px;font-size:.88rem;color:#ffc9c9}
   .esc b{color:#ff9b9b}
-
   .empty{text-align:center;color:var(--tx3);padding:34px 10px;font-size:.9rem}
-  .empty .big{font-size:2.2rem;margin-bottom:10px;opacity:.5}
-
-  footer{text-align:center;color:var(--tx3);font-size:.75rem;padding:14px 0 0;line-height:1.7}
-
-  /* Toast beim Kopieren */
-  #toast{
-    position:fixed;left:50%;bottom:26px;transform:translate(-50%,80px);
-    background:var(--ok);color:#04120a;font-weight:700;font-size:.85rem;
-    padding:11px 20px;border-radius:999px;opacity:0;transition:.28s;pointer-events:none;
-    box-shadow:0 8px 26px rgba(34,197,94,.4);z-index:99
-  }
+  .empty .big{font-size:2.2rem;margin-bottom:10px;opacity:.6}
+  .stat{margin-bottom:14px}
+  .stat-row{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:.85rem}
+  .stat-row .nm{flex:0 0 46%;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stat-row .bar{flex:1;height:9px;background:#0d1730;border-radius:999px;overflow:hidden}
+  .stat-row .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+  .stat-row .ct{flex:0 0 34px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .vlist{list-style:none;margin:0;padding:0}
+  .vitem{border:1px solid var(--line);border-radius:12px;padding:13px;margin-bottom:9px;background:#0d1730}
+  .vitem .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .vitem .nm{font-weight:600;font-size:.92rem}
+  .vitem .tm{color:var(--tx3);font-size:.75rem;margin-top:5px}
+  .vitem .acts{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .mini{background:transparent;border:1px solid var(--line);color:var(--tx2);border-radius:8px;padding:7px 12px;font:inherit;font-size:.78rem;font-weight:600;cursor:pointer}
+  .mini.del{color:#ffb4b4;border-color:rgba(240,82,82,.45)}
+  footer{text-align:center;color:var(--tx3);font-size:.75rem;padding:14px 0 0;line-height:1.8}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,80px);background:var(--ok);color:#04120a;font-weight:700;font-size:.85rem;padding:11px 20px;border-radius:999px;opacity:0;pointer-events:none;box-shadow:0 8px 26px rgba(47,191,113,.4);z-index:99}
   #toast.show{opacity:1;transform:translate(-50%,0)}
+  @media (prefers-reduced-motion: no-preference){#toast{transition:.28s}}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
 <div class="wrap">
 
   <header>
-    <div class="logo"><span class="dot">⚡</span> TriageDesk</div>
-    <p>Ticket-Triage für den IT-Support — Kategorie, Priorität, Lösung in Sekunden</p>
+    <div class="logo"><span class="dot" aria-hidden="true">&#9889;</span> Vorgangs-Triage</div>
+    <p>Ersteinschaetzung fuer IT-Vorgaenge &mdash; Kategorie, Prioritaet, Loesung</p>
+    <span class="privacy"><span aria-hidden="true">&#128274;</span> Laeuft offline &middot; keine Datenuebertragung</span>
   </header>
 
-  <div class="card">
-    <label class="lbl" for="txt">Problem beschreiben</label>
-    <textarea id="txt" placeholder="z. B. „Seit heute früh kann ich mich nicht mehr anmelden, mein Konto ist gesperrt und ich habe gleich einen Kundentermin."></textarea>
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button id="tab-new" role="tab" aria-selected="true" aria-controls="view-new">Erfassung</button>
+    <button id="tab-list" role="tab" aria-selected="false" aria-controls="view-list">Vorgaenge<span class="badge" id="cnt">0</span></button>
+  </nav>
 
-    <div class="chips" id="chips"></div>
+  <main id="main">
 
-    <div class="row" style="margin-top:14px">
-      <button class="btn" id="go">Analysieren</button>
-      <button class="btn ghost" id="clr" style="flex:0 0 96px">Leeren</button>
+  <div id="view-new" role="tabpanel" aria-labelledby="tab-new">
+    <div class="card">
+      <label class="lbl" for="txt">Stoerung oder Anforderung beschreiben</label>
+      <textarea id="txt" aria-describedby="txt-hint" placeholder="z. B. Die AS/400-Sitzung bricht seit heute staendig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."></textarea>
+      <span id="txt-hint" class="sr">Freitext. Die Auswertung erfolgt ausschliesslich lokal im Browser.</span>
+      <div class="chips" id="chips" role="group" aria-label="Beispiele"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="go">Einschaetzen</button>
+        <button class="btn ghost" id="clr" style="flex:0 0 96px">Leeren</button>
+      </div>
     </div>
+    <section class="card" id="out" aria-live="polite" aria-label="Ergebnis der Einschaetzung"></section>
   </div>
 
-  <div class="card" id="out"></div>
+  <div id="view-list" role="tabpanel" aria-labelledby="tab-list" hidden>
+    <section class="card" aria-labelledby="stat-h">
+      <h3 class="sec" id="stat-h" style="margin-top:0">Auswertung</h3>
+      <div id="stats"><div class="empty">Noch keine Vorgaenge erfasst.</div></div>
+    </section>
+    <section class="card" aria-labelledby="list-h">
+      <h3 class="sec" id="list-h" style="margin-top:0">Erfasste Vorgaenge</h3>
+      <ul class="vlist" id="vlist"></ul>
+      <button class="btn danger" id="clearall" style="margin-top:6px">Liste leeren</button>
+    </section>
+  </div>
+
+  </main>
 
   <footer>
-    Regelbasierte Triage-Engine · läuft vollständig offline im Browser<br>
-    Klassifizierung · Priorisierung · Lösungsschritte · Antwortentwurf · Eskalation
+    Regelbasierte Einschaetzung &middot; vollstaendig offline im Browser<br>
+    Keine Uebertragung, kein Server, keine Protokollierung &middot; Eingaben bleiben auf dem Geraet
   </footer>
 </div>
 
-<div id="toast">Kopiert</div>
-
+<div id="toast" role="status" aria-live="polite">Kopiert</div>
 <script>
+
 /* =====================================================================
-   TriageDesk — regelbasierte Ticket-Triage-Engine
-   Fachlogik: Kategorie-Erkennung (Keyword-Gewichtung) + Prioritätsregeln
-   (ITIL-nah) + Lösungsdatenbank + Antwortvorlagen + Eskalationskriterien.
+   Vorgangs-Triage — regelbasierte Ersteinschaetzung fuer IT-Vorgaenge
+   Kommunaler Kontext. Uebergabe-Datensatz auf die Feldstruktur von OTRS
+   abgebildet (helpdesk.koblenz.de, "OTRS External Interface").
    ===================================================================== */
 
-/* ---------- 1. Wissensbasis: Kategorien ---------- */
-/* kw = Schlüsselwörter mit Gewicht; steps = Lösungsschritte;
-   reply = Antwortvorlage; sla = Reaktionszeit; esc = Eskalationshinweis */
+/* ---------- 1. Wissensbasis ---------- */
 const KB = [
   {
-    id:"net", name:"Netzwerk & Konnektivität", icon:"🌐", sla:"30 Min",
-    kw:[["internet",3],["wlan",3],["wifi",3],["netzwerk",3],["netz",2],["vpn",3],
-        ["verbindung",2],["offline",2],["kein zugriff auf",2],["langsam",1],["seite lädt",2],
-        ["dns",3],["ip",2],["router",2],["lan",2],["timeout",2],["abgebrochen",1]],
+    id:"as400", name:"AS/400 & Terminalzugang", icon:"\uD83D\uDDA5\uFE0F", ziel:"1 Std", queue:"IT-Support / Host",
+    kw:[["as400",4],["as/400",4],["as 400",4],["ibm i",4],["terminal",3],["emulation",3],
+        ["sitzung",3],["green screen",3],["bildschirmmaske",3],["client access",3],
+        ["host",2],["abbricht",2]],
     steps:[
-      "Geltungsbereich klären: Nur ein Gerät, eine Abteilung oder alle? → bestimmt die Priorität.",
-      "WLAN/LAN-Status am Gerät prüfen (Flugmodus aus, richtiges SSID, Kabel gesteckt).",
-      "Anderes Gerät im selben Netz testen → unterscheidet Geräte- von Netzproblem.",
-      "IP-Konfiguration prüfen: `ipconfig /release` und `ipconfig /renew`.",
-      "DNS-Test: `nslookup intern.example.com` und `ping 8.8.8.8` (IP geht, Name nicht → DNS).",
-      "Bei VPN: Tunnel-Status, Zertifikatsgültigkeit, Zugangsdaten und Portal-Erreichbarkeit prüfen.",
-      "Switch/AP-Port am Patchfeld und Access-Point-Log prüfen, bevor eskaliert wird."
+      "Geltungsbereich klaeren: Nur eine Person oder das ganze Sachgebiet? Bestimmt die Prioritaet.",
+      "Emulator-Status pruefen: Ist die Sitzung aufgebaut, oder bricht sie beim Anmelden ab?",
+      "Verbindung zum Host testen (Erreichbarkeit, Telnet-Port).",
+      "Emulator-Profil mit einem funktionierenden Nachbarplatz vergleichen: Hostname, Port, Sitzungsname.",
+      "Bei Abbruch waehrend der Arbeit: Zeitpunkt und letzte Aktion notieren - wichtig fuer die Host-Betreuung.",
+      "Terminal-Drucker pruefen, falls Ausdrucke nicht ankommen (eigene Warteschlange am Host).",
+      "Bei mehreren betroffenen Plaetzen sofort an die Host-Betreuung - dann liegt es nicht am Arbeitsplatz."
     ],
-    reply:"Guten Tag,\n\nvielen Dank für die Meldung. Ich prüfe die Netzwerkverbindung Ihres Geräts.\n\nBitte testen Sie kurz: 1) Sind Sie im richtigen WLAN? 2) Tritt das Problem auch bei einer anderen Website auf? 3) Funktioniert ein anderes Gerät im selben Netz?\n\nDiese Angaben helfen mir, den Fehler schnell einzugrenzen. Ich melde mich umgehend mit dem Ergebnis.",
-    esc:"Sofort an Netzwerk-Team, wenn mehrere Nutzer oder ein ganzer Standort betroffen sind, oder wenn der Ausfall geschäftskritische Systeme trifft."
+    reply:"Guten Tag,\n\nich kuemmere mich um den AS/400-Zugang. Damit ich es schnell eingrenzen kann:\n\n1) Bricht die Sitzung schon beim Anmelden ab, oder erst waehrend der Arbeit?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n3) Seit wann tritt es auf?\n\nBitte lassen Sie die Fehlermeldung wenn moeglich auf dem Bildschirm stehen. Ich pruefe parallel die Verbindung zum Host.",
+    esc:"An die Host-/AS/400-Betreuung, sobald mehrere Arbeitsplaetze oder ein ganzes Sachgebiet betroffen sind - dann ist die Ursache nicht am Endgeraet zu suchen."
   },
   {
-    id:"prt", name:"Drucken & Scannen", icon:"🖨️", sla:"2 Std",
-    kw:[["drucker",3],["druckt",3],["druck",2],["papierstau",3],["toner",3],["patrone",3],
-        ["scanner",3],["scan",2],["fax",2],["kopier",2],["druckauftrag",3],["wird nicht gedruckt",3]],
+    id:"fach", name:"Fachverfahren", icon:"\uD83D\uDDC2\uFE0F", ziel:"4 Std", queue:"IT-Support / Fachverfahren",
+    kw:[["faktura",4],["hess",4],["fachverfahren",4],["einwohner",3],["meldeamt",3],
+        ["buergerbuer",3],["bürgerbüro",3],["gewerbe",3],["bauakte",3],["wohngeld",3],
+        ["kasse",3],["standesamt",3],["verfahren",2],["programm startet nicht",3],
+        ["maske",2],["datensatz",2],["akte",2]],
     steps:[
-      "Druckerstatus im System prüfen: online, bereit, keine Fehlermeldung am Display.",
-      "Warteschlange kontrollieren und hängende Aufträge entfernen (Spooler leeren).",
-      "Druckdienst neu starten: `net stop spooler` → `net stop spooler` (Dienst neu starten).",
-      "Treiber und Anschluss (IP/USB/Netzwerk) prüfen, Testseite drucken.",
-      "Bei Netzwerkdrucker: IP-Adresse erreichbar? `ping <drucker-ip>`, Verbrauchsmaterial prüfen.",
-      "Scannen: Zielordner/SMB-Freigabe, Berechtigung und Scan-Profil kontrollieren."
+      "Verfahren genau benennen: welches Verfahren, welcher Arbeitsplatz, welches Sachgebiet?",
+      "Fehlermeldung wortwoertlich erfassen (Screenshot) - Fachverfahren liefern meist einen konkreten Fehlercode.",
+      "Pruefen: Nur diese Person oder alle im Sachgebiet? Nur dieser Vorgang oder jeder?",
+      "Berechtigungen im Verfahren pruefen - Rollen sind oft verfahrensintern, nicht nur im Verzeichnisdienst.",
+      "Bei zentralem Betrieb: Datenbank- und Schnittstellenverbindung pruefen.",
+      "Bei Herstellerfehler: Ticket beim Verfahrenshersteller mit Fehlercode, Version und Reproduktionsschritten.",
+      "Ausweichweg benennen (anderer Arbeitsplatz, Papierverfahren), damit die Arbeit weitergeht."
     ],
-    reply:"Guten Tag,\n\nich kümmere mich um das Druckproblem. Bitte senden Sie mir kurz die Druckerbezeichnung (steht meist oben am Gerät) und ob eine Fehlermeldung im Display erscheint.\n\nIn der Zwischenzeit können Sie am nächstgelegenen Drucker drucken. Ich prüfe Warteschlange und Treiber und melde mich mit der Lösung.",
-    esc:"An 2nd Level, wenn der Druckserver selbst betroffen ist oder mehrere Abteilungen nicht drucken können."
+    reply:"Guten Tag,\n\nich nehme mich dem Problem im Fachverfahren an. Bitte senden Sie mir:\n\n1) Einen Screenshot der Fehlermeldung\n2) Die Bezeichnung des Verfahrens und Ihres Sachgebiets\n3) Ob Kolleginnen und Kollegen dasselbe Problem haben\n\nBitte lassen Sie den Vorgang, bei dem der Fehler auftrat, unveraendert - so kann die Ursache meist direkt nachvollzogen werden. Ich pruefe parallel Ihre Berechtigungen im Verfahren.",
+    esc:"An die Anwendungsbetreuung bzw. den Verfahrenshersteller bei Programm- oder Datenbankfehlern. Bei Ausfall im Kassen- oder Meldewesen zusaetzlich die Sachgebietsleitung informieren."
   },
   {
-    id:"acc", name:"Konto & Anmeldung", icon:"🔑", sla:"1 Std",
-    kw:[["passwort",3],["anmeld",3],["login",3],["gesperrt",3],["konto",2],["benutzer",2],
-        ["mfa",3],["2fa",3],["authentif",3],["token",2],["abgelaufen",2],["vergessen",3],
-        ["anmelden",3],["sperre",2]],
+    id:"acc", name:"Konto & Anmeldung", icon:"\uD83D\uDD11", ziel:"1 Std", queue:"IT-Support / Accounts",
+    kw:[["passwort",4],["anmeld",4],["login",4],["gesperrt",4],["konto",3],["benutzerkonto",4],
+        ["domäne",3],["domaene",3],["vergessen",3],["abgelaufen",3],["sperre",3],["benutzername",3]],
     steps:[
-      "Identität des Nutzers verifizieren (Rückruf auf hinterlegte Nummer oder Ticket-Freigabe) — Pflicht vor jeder Kontomaßnahme.",
-      "Kontostatus im Verzeichnis prüfen: gesperrt, abgelaufen, Passwort abgelaufen?",
-      "Konto entsperren und Passwort-Reset auslösen (Self-Service-Link bevorzugen).",
-      "MFA-Faktoren prüfen: Gerät registriert, Token synchron, Backup-Codes vorhanden?",
-      "Anmeldeversuche im Log prüfen — viele Fehlversuche können auf einen Angriff hindeuten.",
-      "Testanmeldung durchführen und Nutzer bestätigen lassen."
+      "Identitaet verifizieren (Rueckruf auf die hinterlegte Dienstnummer) - Pflicht vor jeder Kontomassnahme.",
+      "Kontostatus im Verzeichnisdienst pruefen: gesperrt, abgelaufen, Kennwortrichtlinie verletzt?",
+      "Konto entsperren und Kennwort zuruecksetzen - Uebergabe persoenlich oder ueber den vereinbarten sicheren Weg, nie per E-Mail im Klartext.",
+      "Kennwortrichtlinie erklaeren und auf den Passwort-Manager der Verwaltung verweisen.",
+      "Pruefen, ob die Anmeldung an mehreren Systemen scheitert (Domaene, Fachverfahren, VPN).",
+      "Fehlversuche im Protokoll pruefen - geaeufte Fehlversuche koennen auf einen Angriff hindeuten.",
+      "Testanmeldung durchfuehren und bestaetigen lassen."
     ],
-    reply:"Guten Tag,\n\nich habe Ihr Konto entsperrt und einen Link zum Zurücksetzen des Passworts an Ihre hinterlegte Adresse gesendet.\n\nBitte setzen Sie das Passwort zurück und melden Sie sich neu an. Falls Sie die Zwei-Faktor-Abfrage nicht abschließen können, teilen Sie mir kurz mit, welches Gerät Sie nutzen — dann richte ich den Faktor neu ein.",
-    esc:"Sofort an Security, wenn viele Fehlversuche von fremden IPs auftreten oder der Nutzer eine Anmeldung nicht erkennt."
+    reply:"Guten Tag,\n\nich habe Ihr Konto entsperrt und ein neues Kennwort vergeben. Aus Sicherheitsgruenden teile ich es Ihnen nicht per E-Mail mit, sondern uebergebe es Ihnen auf dem ueblichen Weg.\n\nBitte aendern Sie es bei der ersten Anmeldung und beachten Sie die Kennwortrichtlinie der Verwaltung. Sollten Sie sich danach nicht anmelden koennen, melden Sie sich bitte kurz - dann pruefe ich die Anmeldung an den einzelnen Systemen.",
+    esc:"Sofort an die IT-Sicherheit, wenn Anmeldeversuche von fremden Adressen auftreten oder die Person eine Anmeldung nicht erkennt. Bei Verdacht auf Kontomissbrauch zusaetzlich den Datenschutzbeauftragten."
   },
   {
-    id:"mail", name:"E-Mail & Kommunikation", icon:"✉️", sla:"2 Std",
-    kw:[["outlook",3],["e-mail",3],["email",3],["mail",2],["postfach",3],["kalender",3],
-        ["teams",3],["besprechung",2],["einladung",2],["senden",2],["empfangen",2],["posteingang",3]],
+    id:"perm", name:"Berechtigungen & Freigaben", icon:"\uD83D\uDD12", ziel:"4 Std", queue:"IT-Support / Berechtigungen",
+    kw:[["berechtigung",4],["zugriff",4],["freigabe",4],["laufwerk",3],["ordner",3],
+        ["rechte",4],["rolle",3],["sachgebiet",3],["netzlaufwerk",4],["kein zugriff",4],
+        ["darf nicht",3],["freischalten",4]],
     steps:[
-      "Eingrenzen: Senden, Empfangen oder beides betroffen? Betrifft es nur einen Ordner?",
-      "Postfachgröße prüfen — volles Postfach blockiert den Empfang.",
-      "Verbindungsstatus des Clients und Anmeldedaten im Profil kontrollieren.",
-      "Outlook neu starten, im abgesicherten Modus testen (Add-ins als Ursache ausschließen).",
-      "Web-Mail testen → unterscheidet Client- von Serverproblem.",
-      "Bei Kalender/Teams: Lizenz, Freigabe und Synchronisationsstatus prüfen."
+      "Bedarf klaeren: welche Ressource, welche Rechte, welche Aufgabe steht dahinter?",
+      "Genehmigung des Sachgebiets einholen - Rechte werden nie auf muendliche Bitte allein vergeben.",
+      "Rollenkonzept pruefen: Rechte kommen ueber Gruppen, nicht ueber Einzelzuweisungen.",
+      "Pruefen, ob eine gleichwertige Rolle existiert, die den Bedarf bereits abdeckt.",
+      "Zuordnung vornehmen und die Aenderung dokumentieren (wer, wann, auf wessen Antrag).",
+      "Neuanmeldung veranlassen - Gruppenrechte greifen oft erst nach erneuter Anmeldung.",
+      "Zugriff testen und bestaetigen lassen."
     ],
-    reply:"Guten Tag,\n\nvielen Dank für Ihre Nachricht. Damit ich das E-Mail-Problem schnell lösen kann: Können Sie Nachrichten senden, empfangen, oder beides nicht? Tritt es in Outlook und im Web-Mail auf?\n\nIch prüfe parallel Postfachgröße und Serverseite und melde mich umgehend.",
-    esc:"An Messaging-Team, wenn der Mailserver betroffen ist oder Zustellungen verzögert/verloren gehen."
+    reply:"Guten Tag,\n\nfuer die Freigabe benoetige ich die Genehmigung Ihres Sachgebiets - das ist bei Rechten auf Akten und Laufwerke so vorgesehen.\n\nSobald die Genehmigung vorliegt, richte ich den Zugriff ein und melde mich mit der Bestaetigung. Bitte melden Sie sich danach einmal neu an, damit die Berechtigung wirksam wird.",
+    esc:"An die IT-Sicherheit bzw. den Datenschutzbeauftragten, wenn es um erhoehte Rechte, Aktenzugriff ueber Sachgebietsgrenzen oder personenbezogene Daten geht."
   },
   {
-    id:"hw", name:"Hardware & Geräte", icon:"💻", sla:"4 Std",
-    kw:[["laptop",3],["notebook",3],["monitor",3],["bildschirm",3],["tastatur",3],
-        ["maus",3],["akku",3],["netzteil",3],["startet nicht",3],["geht nicht an",3],
-        ["defekt",3],["kabel",2],["dock",3],["docking",3],["überhitzt",3],["laut",2]],
+    id:"prt", name:"Drucken & Scannen", icon:"\uD83D\uDDA8\uFE0F", ziel:"2 Std", queue:"IT-Support / Peripherie",
+    kw:[["drucker",4],["druckt",4],["papierstau",4],["toner",3],["patrone",3],
+        ["scanner",4],["scan",3],["formular",2],["druckauftrag",4],["kopierer",3],
+        ["kassendrucker",4],["bon",3]],
     steps:[
-      "Fehlerbild präzise aufnehmen: Was passiert genau, seit wann, gab es ein Ereignis (Sturz, Update)?",
-      "Stromversorgung prüfen: Netzteil, Kabel, Ladestatus, andere Steckdose.",
-      "Externe Geräte abstecken und Neustart versuchen (Minimalkonfiguration).",
-      "Beim Docking: anderen Port/Kabel testen, Firmware des Docks prüfen.",
-      "Hardware-Diagnose starten (Hersteller-Tool oder BIOS-Diagnose).",
-      "Ersatzgerät prüfen und bei Bedarf bereitstellen, defektes Gerät für Garantie/Austausch erfassen."
+      "Geraet und Standort klaeren (Raumnummer) - bei Buergerbuer und Kasse zuerst, weil dort Publikumsverkehr laeuft.",
+      "Status am Geraet pruefen: Display, Fehlerlampe, Papier, Toner.",
+      "Warteschlange am Arbeitsplatz kontrollieren und haengende Auftraege entfernen.",
+      "Druckdienst neu starten, Treiber und Anschluss pruefen, Testseite drucken.",
+      "Bei Kassendruckern: Bondrucker ist ein eigenes Geraet mit eigener Anbindung - Kassenfunktion separat pruefen.",
+      "Ausweichgeraet benennen, damit der Publikumsverkehr nicht stockt.",
+      "Bei Scannern: Scan-Zielordner, Berechtigung und Scan-Profil kontrollieren."
     ],
-    reply:"Guten Tag,\n\nich habe Ihre Meldung aufgenommen. Damit wir den Ausfall schnell beheben: Können Sie mir sagen, ob das Gerät noch startet und ob eine Fehlermeldung erscheint?\n\nFalls das Gerät nicht nutzbar ist, stelle ich Ihnen kurzfristig ein Ersatzgerät bereit. Bitte nennen Sie mir Ihren Standort.",
-    esc:"An Hardware-Service, wenn ein Garantiefall oder Datenträgerausfall vorliegt (Datenrettung nötig)."
+    reply:"Guten Tag,\n\nich kuemmere mich um das Druckproblem. Bitte nennen Sie mir die Raumnummer und ob am Geraet eine Fehlermeldung erscheint.\n\nFalls Sie am Publikumsschalter arbeiten, nennen Sie mir das bitte dazu - dann kuemmere ich mich vorrangig darum und benenne Ihnen sofort ein Ausweichgeraet.",
+    esc:"An den Druckerserver-/Netzwerkbetrieb, wenn mehrere Geraete oder ein ganzes Sachgebiet betroffen sind. Bei Ausfall im Buergerbuer zusaetzlich die Sachgebietsleitung informieren."
   },
   {
-    id:"sw", name:"Software & Anwendungen", icon:"🧩", sla:"4 Std",
-    kw:[["programm",3],["software",3],["anwendung",3],["app",2],["installier",3],["update",2],
-        ["absturz",3],["stürzt ab",3],["fehlermeldung",2],["lizenz",3],["excel",3],["word",3],
-        ["sap",3],["öffnet nicht",3],["reagiert nicht",3],["hängt",2]],
+    id:"mail", name:"E-Mail & Besprechungen", icon:"\u2709\uFE0F", ziel:"2 Std", queue:"IT-Support / Mail",
+    kw:[["outlook",4],["e-mail",4],["email",4],["postfach",4],["kalender",3],
+        ["besprechung",3],["einladung",3],["posteingang",4],["verteiler",3],
+        ["empfangen",3],["mail",3],["senden",2]],
     steps:[
-      "Fehlermeldung wörtlich erfassen — sie bestimmt die Lösung (Screenshot anfordern).",
-      "Reproduzierbar? Tritt es bei anderen Nutzern oder nur hier auf?",
-      "Anwendung neu starten, danach Gerät neu starten.",
-      "Lizenz- und Berechtigungsstatus im Lizenzportal prüfen.",
-      "Programm reparieren oder neu installieren (Softwareverteilung nutzen).",
-      "Logs der Anwendung prüfen und Fehlercode dokumentieren.",
-      "Bei Updates: Version prüfen, ggf. auf vorherige Version zurückrollen."
+      "Eingrenzen: Senden, Empfangen oder beides? Nur ein Ordner oder das ganze Postfach?",
+      "Postfachgroesse pruefen - ein volles Postfach blockiert den Empfang.",
+      "Zustand des Postfachs und der Anmeldung im Profil kontrollieren.",
+      "Programm neu starten; bei Auffaelligkeiten im abgesicherten Modus testen.",
+      "Web-Zugriff testen - unterscheidet Programm- von Serverproblem.",
+      "Bei Kalendereinladungen: Stellvertretungen und Verteiler pruefen.",
+      "Bei dienstlich wichtigen Nachrichten das Zustellprotokoll pruefen, nicht nur den Client."
     ],
-    reply:"Guten Tag,\n\nbitte senden Sie mir einen Screenshot der Fehlermeldung — damit kann ich die Ursache meist direkt bestimmen.\n\nIch prüfe parallel Ihren Lizenz- und Installationsstatus und melde mich mit der Lösung. Falls die Anwendung für Ihre Arbeit dringend benötigt wird, nennen Sie mir bitte die Frist.",
-    esc:"An Anwendungsbetreuung/Hersteller, wenn ein Produktfehler, Datenbankfehler oder ein Fehler in einer Fachanwendung vorliegt."
+    reply:"Guten Tag,\n\nvielen Dank fuer die Meldung. Damit ich es schnell eingrenzen kann:\n\n1) Koennen Sie Nachrichten senden, empfangen, oder beides nicht?\n2) Tritt es im Programm und im Web-Zugriff auf?\n\nIch pruefe parallel die Postfachgroesse und die Serverseite. Bei dienstlich wichtigen Nachrichten pruefe ich zusaetzlich das Zustellprotokoll.",
+    esc:"An den Mailbetrieb, wenn Zustellungen verzoegert oder verloren gehen oder das Postfach zentral betroffen ist."
   },
   {
-    id:"perm", name:"Zugriff & Berechtigungen", icon:"🔒", sla:"4 Std",
-    kw:[["berechtigung",3],["zugriff",3],["freigabe",3],["laufwerk",3],["ordner",3],
-        ["netzlaufwerk",3],["rechte",3],["gesperrt für",2],["darf nicht",2],["kein zugriff",3],
-        ["sharepoint",3],["team-ordner",2]],
+    id:"hw", name:"Arbeitsplatz & Hardware", icon:"\uD83D\uDCBB", ziel:"4 Std", queue:"IT-Support / Hardware",
+    kw:[["rechner",3],["laptop",4],["notebook",4],["monitor",4],["bildschirm",3],
+        ["tastatur",4],["maus",4],["dock",4],["dockingstation",4],["netzteil",3],
+        ["defekt",3],["startet nicht",4],["geht nicht an",4],["flackert",3],["akku",3]],
     steps:[
-      "Anforderung klären: Welche Ressource, welche Rechte, welche Begründung?",
-      "Berechtigungskonzept prüfen — Genehmigung des Fachbereichs einholen (Vier-Augen-Prinzip).",
-      "Gruppenmitgliedschaft prüfen (Rechte kommen über Gruppen, nicht direkt).",
-      "Zuordnung zur richtigen Rolle/Gruppe vornehmen, Änderung dokumentieren.",
-      "Nutzer neu anmelden lassen (Gruppenrechte greifen oft erst nach Neuanmeldung).",
-      "Zugriff testen und Bestätigung einholen."
+      "Fehlerbild aufnehmen: was genau, seit wann, ging ein Ereignis voraus (Sturz, Umstellung, Update)?",
+      "Stromversorgung pruefen: Netzteil, Kabel, Steckdose, Ladestatus.",
+      "Externe Geraete abstecken und neu starten (Minimalkonfiguration).",
+      "Bei Dockingstation: anderen Anschluss und anderes Kabel testen, Firmware-Stand pruefen.",
+      "Hardware-Diagnose des Herstellers starten.",
+      "Ersatzgeraet bereitstellen, damit die Arbeit weitergeht - defektes Geraet fuer Garantie/Austausch erfassen.",
+      "Bei Geraeten mit personenbezogenen Daten vor Weitergabe an den Service die Datentraeger-Vorgaben beachten."
     ],
-    reply:"Guten Tag,\n\nfür die Freigabe benötige ich noch die schriftliche Genehmigung Ihres Fachbereichs. Sobald diese vorliegt, richte ich den Zugriff ein und bestätige Ihnen die Freischaltung.\n\nBitte melden Sie sich nach der Freigabe einmal neu an, damit die Berechtigung aktiv wird.",
-    esc:"An IT-Security, wenn es um erhöhte Rechte, Administratorenzugänge oder kritische Daten geht."
+    reply:"Guten Tag,\n\nich habe Ihre Meldung aufgenommen. Bitte nennen Sie mir:\n\n1) Startet das Geraet noch und erscheint eine Fehlermeldung?\n2) Seit wann tritt es auf?\n\nFalls das Geraet nicht nutzbar ist, stelle ich kurzfristig ein Ersatzgeraet bereit. Nennen Sie mir dafuer bitte Ihren Standort und Ihr Sachgebiet.",
+    esc:"An den Hardware-Service bei Garantiefaellen oder Datentraegerausfall. Bei Geraeten mit personenbezogenen Daten zusaetzlich die Vorgaben zum Datentraegeraustausch beachten."
   },
   {
-    id:"sec", name:"Sicherheit & Vorfälle", icon:"🛡️", sla:"15 Min",
-    kw:[["phishing",4],["virus",3],["malware",3],["ransomware",4],["verschlüsselt",3],["verdacht",3],
-        ["trojaner",3],["verdächtig",3],["spam",2],["betrug",3],["gehackt",3],
-        ["datenverlust",3],["angriff",3],["fremde anmeldung",3],["erpressung",3]],
+    id:"sw", name:"Software & Installation", icon:"\uD83E\uDDE9", ziel:"4 Std", queue:"IT-Support / Software",
+    kw:[["installier",4],["software",4],["programm",3],["update",3],["lizenz",4],
+        ["absturz",4],["stürzt ab",4],["fehlermeldung",3],["office",3],["excel",3],
+        ["word",3],["öffnet nicht",4],["reagiert nicht",4]],
     steps:[
-      "SOFORT: Gerät vom Netz trennen (WLAN aus, Kabel ziehen) — Ausbreitung verhindern.",
-      "Nichts löschen, nichts neu starten, keine Dateien öffnen — Beweise sichern.",
-      "Vorfall an IT-Security melden (Incident-Hotline) — höchste Priorität, keine Eigenreparatur.",
-      "Betroffene Konten sperren und Passwörter aller genutzten Konten ändern lassen.",
-      "Bei verdächtiger Mail: Absender und Header sichern, Mail nicht weiterleiten, melden.",
-      "Vorfall dokumentieren: Zeitpunkt, Beobachtung, betroffene Systeme, bereits getroffene Maßnahmen.",
-      "Nach Freigabe durch Security: Neuinstallation/Aufräumen, Nutzer informieren."
+      "Fehlermeldung wortwoertlich erfassen (Screenshot) - sie bestimmt den naechsten Schritt.",
+      "Pruefen: reproduzierbar? Bei anderen Personen auch?",
+      "Programm und danach das Geraet neu starten.",
+      "Lizenz- und Freigabestatus pruefen - Software wird in der Verwaltung zentral freigegeben.",
+      "Installation ueber die Softwareverteilung anstossen statt manuell zu installieren.",
+      "Protokolle des Programms pruefen und Fehlercode dokumentieren.",
+      "Nach Updates: Version pruefen und bei Bedarf auf die vorherige Version zurueckgehen."
     ],
-    reply:"WICHTIG: Bitte trennen Sie das Gerät sofort vom Netzwerk (WLAN aus, Netzwerkkabel ziehen) und öffnen Sie keine Dateien mehr.\n\nLöschen Sie nichts und starten Sie das Gerät nicht neu — wir müssen den Vorfall untersuchen. Ich habe den Sicherheitsvorfall gemeldet; unser Security-Team übernimmt und kontaktiert Sie umgehend.\n\nVielen Dank für die schnelle Meldung — genau richtig gehandelt.",
-    esc:"IMMER sofort an IT-Security — niemals selbst reparieren. Bei Ransomware zusätzlich Geschäftsführung und Datenschutzbeauftragten informieren."
+    reply:"Guten Tag,\n\nbitte senden Sie mir einen Screenshot der Fehlermeldung - damit laesst sich die Ursache meist direkt bestimmen.\n\nIch pruefe parallel, ob die Software fuer Ihren Arbeitsplatz freigegeben ist und ob eine Installation ueber die Softwareverteilung moeglich ist. Bitte nennen Sie mir, bis wann Sie das Programm benoetigen.",
+    esc:"An die Anwendungsbetreuung bzw. den Hersteller bei Programmfehlern. Bei fehlender Freigabe an die zustaendige Stelle fuer Softwarebeschaffung."
   },
   {
-    id:"tel", name:"Telefonie & Mobilität", icon:"📞", sla:"2 Std",
-    kw:[["telefon",3],["anruf",3],["festnetz",3],["handy",3],["mobiltelefon",3],
-        ["headset",4],["mikrofon",4],["kamera",2],["rufnummer",2],["voip",3],["softphone",3],
-        ["kein ton",4],["ton",2],["audio",3],["lautsprecher",3]],
+    id:"sec", name:"Sicherheit & Datenschutz", icon:"\uD83D\uDEE1\uFE0F", ziel:"15 Min", queue:"IT-Sicherheit",
+    kw:[["phishing",5],["virus",4],["malware",4],["ransomware",5],["verschlüsselt",4],
+        ["verdacht",4],["verdächtig",4],["datenschutz",4],["datenpanne",5],["angriff",4],
+        ["gehackt",4],["fremde anmeldung",4],["erpressung",5],["betrug",4],["trojaner",4],
+        ["datenabfluss",5]],
     steps:[
-      "Eingrenzen: Nur ein Gerät oder die Anlage? Eingehend, ausgehend oder beides?",
-      "Gerät prüfen: Strom, Netzwerk, Headset korrekt angeschlossen und ausgewählt.",
-      "Mikrofon-/Kamerafreigabe im Betriebssystem und in der Anwendung kontrollieren.",
-      "Bei VoIP: Registrierungsstatus der Nebenstelle und Netzwerkgüte prüfen.",
-      "Testanruf durchführen, ggf. Nebenstelle neu registrieren.",
-      "Bei Mobilgeräten: SIM/Aktivierung, Profil, Gerätesperre und Rufumleitung prüfen."
+      "SOFORT: Geraet vom Netz trennen (Netzwerkkabel ziehen, WLAN aus) - Ausbreitung verhindern.",
+      "Nichts loeschen, nichts neu starten, keine Dateien oeffnen - Spuren sichern.",
+      "IT-Sicherheit und Datenschutzbeauftragten informieren - keine Eigenreparatur, keine eigene Einschaetzung der Meldewege.",
+      "Bei personenbezogenen Daten den Vorfall als Datenschutzvorfall behandeln; die Meldung an die Aufsichtsbehoerde ist Sache der dafuer bestimmten Stelle.",
+      "Betroffene Konten sperren, Kennwoerter aller genutzten Zugaenge aendern lassen.",
+      "Bei verdaechtiger E-Mail: Kopfzeilen sichern, Mail nicht weiterleiten, an die Meldeadresse geben.",
+      "Vorfall dokumentieren: Zeitpunkt, Beobachtung, betroffene Systeme, bereits getroffene Massnahmen."
     ],
-    reply:"Guten Tag,\n\nich prüfe die Telefonie für Sie. Bitte testen Sie kurz: Können Sie angerufen werden, und klappt das Wählen? Ist Ihr Headset korrekt ausgewählt?\n\nFalls die Störung die gesamte Anlage betrifft, melde ich sie direkt beim Anbieter und halte Sie auf dem Laufenden.",
-    esc:"An Telefonie-Anbieter/2nd Level, wenn die TK-Anlage oder mehrere Nebenstellen betroffen sind."
+    reply:"WICHTIG: Bitte trennen Sie das Geraet sofort vom Netzwerk (Netzwerkkabel ziehen, WLAN ausschalten) und oeffnen Sie keine Dateien mehr.\n\nBitte loeschen Sie nichts und starten Sie das Geraet nicht neu - die Ursache muss nachvollziehbar bleiben. Ich habe den Vorfall an die IT-Sicherheit und den Datenschutz gemeldet.\n\nVielen Dank fuer die schnelle Meldung - genau richtig gehandelt.",
+    esc:"IMMER sofort an IT-Sicherheit und Datenschutzbeauftragten - niemals selbst reparieren. Die Entscheidung ueber Meldungen an die Aufsichtsbehoerde liegt bei diesen Stellen, nicht beim Erstkontakt."
   },
   {
-    id:"dat", name:"Daten, Dateien & Backup", icon:"💾", sla:"2 Std",
-    kw:[["datei",2],["gelöscht",3],["verloren",3],["backup",3],["sicherung",3],
-        ["wiederherstell",3],["wiederherstellen",3],["papierkorb",3],["version",2],
-        ["wiederherstellung",3],["datum",1],["speichern",2],["dokument weg",3]],
+    id:"tel", name:"Telefonie & Erreichbarkeit", icon:"\uD83D\uDCDE", ziel:"2 Std", queue:"IT-Support / Telefonie",
+    kw:[["telefon",4],["anruf",4],["nebenstelle",4],["tk-anlage",4],["headset",4],
+        ["mikrofon",4],["kein ton",4],["freizeichen",3],["rufumleitung",4],["festnetz",3],
+        ["weiterleiten",3]],
     steps:[
-      "Ruhe bewahren, sofort nichts mehr auf dem Datenträger speichern (Überschreibungsgefahr).",
-      "Lokalen Papierkorb und „Gelöschte Elemente“ prüfen.",
-      "Version-Verlauf (SharePoint/OneDrive/Netzlaufwerk-Snapshots) prüfen.",
-      "Backup-Katalog prüfen: letzte Sicherung, Aufbewahrungszeit, betroffener Pfad.",
-      "Wiederherstellung durchführen und Nutzer das Ergebnis bestätigen lassen.",
-      "Datenverlust-Ursache klären und Maßnahme dokumentieren (Sicherungsstrategie anpassen)."
+      "Eingrenzen: nur ein Apparat oder die Anlage? Eingehend, ausgehend oder beides?",
+      "Geraet pruefen: Stromversorgung, Netzwerkanschluss, Headset korrekt gesteckt und ausgewaehlt.",
+      "Freigaben fuer Mikrofon und Kamera im Betriebssystem und im Programm kontrollieren.",
+      "Registrierungsstatus der Nebenstelle pruefen, Testanruf durchfuehren.",
+      "Rufumleitung und Stellvertretungsregeln pruefen - haeufige Ursache fuer nicht erreichbar.",
+      "Bei Publikumsnummern vorrangig behandeln und eine Ausweichnummer bekannt geben."
     ],
-    reply:"Guten Tag,\n\nbitte speichern Sie ab jetzt nichts mehr auf diesem Gerät bzw. Laufwerk — das erhöht die Chance der Wiederherstellung.\n\nIch prüfe Papierkorb, Versionsverlauf und die letzte Sicherung und melde mich mit dem Ergebnis. Bitte nennen Sie mir den Dateinamen und den ungefähren Zeitpunkt der letzten Änderung.",
-    esc:"An Backup-Team, wenn die Sicherung eingespielt werden muss oder Daten aus einer Sicherung fehlen."
+    reply:"Guten Tag,\n\nich pruefe die Telefonie fuer Sie. Bitte testen Sie kurz:\n\n1) Koennen Sie angerufen werden?\n2) Klappt das Waehlen?\n3) Ist Ihr Headset im Programm ausgewaehlt?\n\nFalls eine Publikumsnummer betroffen ist, melden Sie mir das bitte sofort - dann behandle ich es vorrangig und richte eine Ausweichnummer ein.",
+    esc:"An die Telefonie-Betreuung bzw. den Anbieter, wenn die Anlage oder mehrere Nebenstellen betroffen sind. Bei Ausfall einer Publikumsnummer zusaetzlich die Sachgebietsleitung."
+  },
+  {
+    id:"dat", name:"Daten & Wiederherstellung", icon:"\uD83D\uDCBE", ziel:"2 Std", queue:"IT-Support / Daten",
+    kw:[["datei",3],["gelöscht",4],["verloren",4],["sicherung",4],["backup",4],
+        ["wiederherstell",4],["papierkorb",4],["version",3],["versehentlich",3],
+        ["überschrieben",4]],
+    steps:[
+      "Sofort: nichts mehr auf dem betroffenen Laufwerk speichern - jede Schreiboperation kann ueberschreiben.",
+      "Papierkorb bzw. Gelöschte Elemente pruefen.",
+      "Versionsverlauf des Speicherorts pruefen (Netzlaufwerk-Snapshots, Dokumentenverwaltung).",
+      "Sicherungskatalog pruefen: letzte Sicherung, Aufbewahrungszeit, betroffener Pfad.",
+      "Wiederherstellung durchfuehren und Ergebnis bestaetigen lassen.",
+      "Ursache klaeren und dokumentieren - bei wiederholtem Verlust die Ablagegewohnheit ansprechen.",
+      "Bei personenbezogenen Daten pruefen, ob ein Datenschutzvorfall vorliegt."
+    ],
+    reply:"Guten Tag,\n\nbitte speichern Sie ab jetzt nichts mehr auf diesem Laufwerk - das erhoeht die Chance der Wiederherstellung.\n\nBitte nennen Sie mir Dateinamen, Speicherort und den ungefaehren Zeitpunkt der letzten Aenderung. Ich pruefe Papierkorb, Versionsverlauf und die letzte Sicherung und melde mich mit dem Ergebnis.",
+    esc:"An die Sicherungsbetreuung, wenn eine Sicherung eingespielt werden muss. Bei personenbezogenen Daten zusaetzlich an den Datenschutzbeauftragten."
+  },
+  {
+    id:"net", name:"Netzwerk & Verbindung", icon:"\uD83C\uDF10", ziel:"1 Std", queue:"IT-Support / Netzwerk",
+    kw:[["netzwerk",4],["internet",4],["wlan",4],["vpn",4],["verbindung",3],
+        ["netzlaufwerk",3],["langsam",3],["dns",4],["timeout",3],["host nicht erreichbar",4]],
+    steps:[
+      "Geltungsbereich klaeren: ein Arbeitsplatz, ein Sachgebiet oder ein Standort?",
+      "Anschluss pruefen: Netzwerkkabel gesteckt, WLAN verbunden, richtiges Netz.",
+      "Zweiten Arbeitsplatz im selben Bereich testen - trennt Endgeraet von Netz.",
+      "Netzkonfiguration erneuern.",
+      "Namensaufloesung testen: geht die Adresse, aber kein Name, liegt es an der Namensaufloesung.",
+      "Bei VPN: Tunnel-Status, Zertifikatsgueltigkeit und Portal-Erreichbarkeit pruefen.",
+      "Bei mehreren Betroffenen sofort an den Netzbetrieb - dann ist es kein Arbeitsplatzproblem."
+    ],
+    reply:"Guten Tag,\n\nich pruefe die Netzwerkverbindung. Bitte testen Sie kurz:\n\n1) Ist das Netzwerkkabel gesteckt bzw. sind Sie im richtigen WLAN?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n\nBitte lassen Sie die Fehlermeldung wenn moeglich stehen. Bei mehreren Betroffenen gebe ich es sofort an den Netzbetrieb weiter.",
+    esc:"Sofort an den Netzbetrieb, wenn mehrere Arbeitsplaetze oder ein Standort betroffen sind oder ein zentrales Verfahren nicht erreichbar ist."
   }
 ];
 
-/* ---------- 2. Prioritätsregeln ---------- */
-/* Höhere Gewichte schlagen niedrigere. Erste passende Stufe gewinnt. */
+/* ---------- 2. Prioritaetsregeln (mit OTRS-Abbildung) ---------- */
+/* OTRS-Standardprioritaeten: 1 very low, 2 low, 3 normal, 4 high, 5 very high */
 const PRIO_RULES = [
-  { p:1, label:"Kritisch", adj:"Kritische", sla:"15 Min", color:"--p1",
-    kw:["ransomware","verschlüsselt","erpressung","datenverlust","ausfall","server down",
-        "alle können nicht","keiner kann","niemand kann","komplettausfall","produktion steht",
+  { p:1, label:"Kritisch", adj:"Kritische", ziel:"15 Min", color:"--p1", otrs:"5 very high",
+    kw:["ransomware","verschlüsselt","erpressung","datenpanne","datenabfluss","ausfall",
+        "komplettausfall","nichts geht","keiner kann","niemand kann","alle können nicht",
         "gehackt","angriff","virus","malware","trojaner","notfall","kritisch",
-        "phishing","verdacht","verdächtig","geklickt","mehrere","abteilung",
-        "standort","betroffen","auch bei","bei kollegen","nichts geht"],
-    why:"Ausfall- oder Sicherheitssignal: betrifft mehrere Nutzer, kritische Systeme oder die Datensicherheit." },
-  { p:2, label:"Hoch", adj:"Hohe", sla:"1 Std", color:"--p2",
-    kw:["geschäftsführung","vorstand","chef","leitung","kunde","kundentermin","termin",
-        "präsentation","meeting","deadline","dringend","sofort","heute noch","frist",
-        "abteilung steht","messe","vertrag"],
-    why:"Geschäftskritischer Kontext: Führungskraft, Kunde, Termin oder Frist betroffen." },
-  { p:3, label:"Mittel", adj:"Mittlere", sla:"4 Std", color:"--p3",
-    kw:[], why:"Standardfall: einzelner Nutzer, Arbeit eingeschränkt, aber ein Ausweichweg existiert." },
-  { p:4, label:"Niedrig", adj:"Niedrige", sla:"2 Tage", color:"--p4",
+        "phishing","verdacht","verdächtig","mehrere","abteilung","standort",
+        "betroffen","wahlen","kasse steht","dasselbe problem","gleiches problem",
+        "auch betroffen","mehrere kollegen","ganzes sachgebiet"],
+    why:"Ausfall- oder Sicherheitssignal: mehrere Beschaeftigte betroffen, Publikumsverkehr oder Datensicherheit beruehrt." },
+  { p:2, label:"Hoch", adj:"Hohe", ziel:"1 Std", color:"--p2", otrs:"4 high",
+    kw:["amtsleitung","bürgermeister","dezernat","beigeordnete","ratssitzung","ausschuss",
+        "sitzung","vorlage","frist","termin","bürgertermin","bürger","dringend","sofort",
+        "heute noch","präsentation","kundentermin","vertrag"],
+    why:"Geschaeftskritischer Kontext: Leitungsebene, Gremien, Buergertermin oder Frist betroffen." },
+  { p:3, label:"Mittel", adj:"Mittlere", ziel:"4 Std", color:"--p3", otrs:"3 normal",
+    kw:[], why:"Standardfall: einzelne Person betroffen, Arbeit eingeschraenkt, aber ein Ausweichweg besteht." },
+  { p:4, label:"Niedrig", adj:"Niedrige", ziel:"2 Tage", color:"--p4", otrs:"2 low",
     kw:["wenn zeit","irgendwann","bei gelegenheit","kein stress","nice to have","optional",
         "kosmetisch","schön wäre","nicht dringend","unwichtig","ohne eile","keine eile",
-        "eilt nicht","keine eile","wenn du mal"],
-    why:"Keine Beeinträchtigung der Arbeit: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
+        "eilt nicht","wenn du mal","wenn sie mal"],
+    why:"Keine Beeintraechtigung: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
 ];
 
 /* ---------- 3. Engine ---------- */
 const norm = s => s.toLowerCase()
   .replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss");
 
-/* Treffer-Erkennung: kurze Schlüsselwörter (<=4 Zeichen) nur als eigenes Wort,
-   damit z. B. "lan" nicht in "langsam" trifft. Längere als Teilstring,
-   damit Komposita wie "Netzwerkproblem" erkannt werden. */
+/* Kurze Schluesselwoerter nur als eigenes Wort pruefen, damit z. B. "lan" nicht
+   in "langsam" trifft. Laengere als Teilstring, damit Komposita erkannt werden. */
 function hit(text, kw){
   const k = norm(kw);
   if (k.length > 4) return text.includes(k);
-  const esc = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp("(^|[^a-z0-9])" + esc + "([^a-z0-9]|$)").test(text);
+  const e = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp("(^|[^a-z0-9])" + e + "([^a-z0-9]|$)").test(text);
 }
 
-/* Negation: Steht unmittelbar vor einem Signalwort eine Verneinung, darf es
-   NICHT als Prioritaets-Ausloeser zaehlen — "keinen Termin" ist kein Termin-
-   druck, "nicht dringend" ist keine hohe Prioritaet.
-   Bewusst NICHT auf die Kategorie-Erkennung angewendet: "ich kann mich nicht
-   anmelden" beschreibt ein Anmelde-Problem, die Verneinung gehoert dort zum
-   Symptom. */
+/* Negation nur bei Prioritaetssignalen: "keinen Termin" ist kein Termindruck.
+   Nicht bei der Kategorie - "kann mich nicht anmelden" ist ein Anmeldeproblem.
+   Die Pruefung endet an der Satzgrenze. */
 const NEG = ["kein","keine","keinen","keiner","keinem","keines","ohne","nicht",
              "nie","niemals","kaum","weder","entgegen"];
 function negated(text, kw){
   const k = norm(kw);
   let i = text.indexOf(k);
   while (i !== -1){
-    /* Nur innerhalb desselben Satzes pruefen: sonst wuerde das "nicht" aus
-       "Seiten laden nicht. Kollegen sind betroffen." die Kollegen verneinen. */
     const seg = text.slice(0, i);
     const cut = Math.max(seg.lastIndexOf("."), seg.lastIndexOf("!"),
                          seg.lastIndexOf("?"), seg.lastIndexOf(";"),
                          seg.lastIndexOf(","));
     const before = text.slice(cut + 1, i).trim().split(/\s+/).filter(Boolean).slice(-2);
-    const verneint = before.some(w => NEG.includes(w.replace(/[^a-z]/g, "")));
-    if (!verneint) return false;      // mindestens ein unverneintes Vorkommen
+    if (!before.some(w => NEG.includes(w.replace(/[^a-z]/g, "")))) return false;
     i = text.indexOf(k, i + 1);
   }
-  return true;                        // nur verneinte Vorkommen gefunden
+  return true;
 }
 
 function scoreCategories(text){
@@ -430,7 +440,7 @@ function pickPriority(text){
     const hits = r.kw.filter(k => hit(t, k) && !negated(t, k));
     if (hits.length) return { ...r, hits };
   }
-  return { ...PRIO_RULES[2], hits: [] };   // Default: Mittel
+  return { ...PRIO_RULES[2], hits: [] };
 }
 
 function analyze(text){
@@ -439,64 +449,110 @@ function analyze(text){
   const second = ranked[1];
   const prio = pickPriority(text);
 
-  // Konfidenz: Abstand zum Zweitplatzierten + absolute Trefferstärke
   let conf = 40;
   if (best.score > 0){
     const gap = best.score - (second ? second.score : 0);
     conf = Math.min(97, 52 + best.score * 5 + gap * 9);
   }
-  // Konfidenz sinkt ohne Prioritätssignal (Standardfall ist unsicherer)
   if (prio.hits.length === 0) conf = Math.max(35, conf - 12);
+
+  const isReq = best.cat.id === "perm" || prio.p === 4;
 
   return { cat: best.cat, score: best.score, hits: best.hits,
            alternates: ranked.slice(1,3).filter(r => r.score > 0),
            prio, conf, chars: text.trim().length,
-           /* ITIL-nah: Stoerung = Incident, Anforderung = Service Request */
-           type: (best.cat.id === "perm" || prio.p === 4) ? "Service Request" : "Incident" };
+           type: isReq ? "Service Request" : "Incident" };
 }
 
 /* ---------- 4. Beispiele ---------- */
 const EXAMPLES = [
-  ["Konto gesperrt", "Ich kann mich nicht anmelden, mein Konto ist gesperrt und ich habe in 30 Minuten einen Kundentermin."],
-  ["Drucker streikt", "Der Drucker in Raum 204 druckt nicht, der Auftrag hängt in der Warteschlange und es blinkt eine rote Lampe."],
-  ["Phishing-Mail", "Ich habe eine verdächtige Mail bekommen und versehentlich auf den Link geklickt. Jetzt ist der Rechner sehr langsam."],
-  ["Netzwerk", "Seit heute früh habe ich kein Internet, WLAN wird angezeigt aber Seiten laden nicht. Kollegen am selben Switch sind auch betroffen."],
-  ["Datei gelöscht", "Ich habe aus Versehen eine wichtige Excel-Datei gelöscht, sie ist auch nicht im Papierkorb."],
-  ["Software-Fehler", "SAP öffnet nicht mehr, es kommt eine Fehlermeldung und das Programm stürzt direkt ab."],
-  ["Zugriff", "Ich brauche Zugriff auf den Team-Ordner im Netzlaufwerk, meine Kollegin hat ihn auch."],
-  ["Kleinigkeit", "Mein Monitorkabel ist etwas locker, aber es funktioniert – kein Stress, wenn du mal Zeit hast."]
+  ["AS/400 bricht ab", "Die AS/400-Sitzung bricht seit heute staendig ab, ich komme nicht an die Faktura-Daten. Zwei Kolleginnen im Sachgebiet haben dasselbe Problem."],
+  ["Konto gesperrt", "Ich kann mich nicht anmelden, mein Konto ist gesperrt und ich habe in 30 Minuten einen Buergertermin am Schalter."],
+  ["Fachverfahren", "Das Fachverfahren zeigt beim Oeffnen einer Akte eine Fehlermeldung und laesst sich nicht mehr bedienen."],
+  ["Phishing-Mail", "Ich habe eine verdaechtige Mail bekommen und versehentlich auf den Link geklickt. Der Rechner reagiert jetzt sehr langsam."],
+  ["Buergerbuer-Drucker", "Der Drucker am Publikumsschalter druckt keine Formulare mehr, die Warteschlange staut sich und draussen warten Buerger."],
+  ["Berechtigung", "Ich brauche Zugriff auf den Aktenordner meines Sachgebiets, meine Kollegin hat ihn auch."],
+  ["Kleinigkeit", "Mein Monitorkabel sitzt etwas locker, es funktioniert aber. Kein Stress, wenn Sie mal Zeit haben."]
 ];
 
-/* ---------- 5. Rendern ---------- */
+/* ---------- 5. Vorgangsspeicher ---------- */
+const KEY = "vorgangstriage.vorgaenge";
+const ZAEHLER = "vorgangstriage.zaehler";
+
+function loadAll(){
+  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(e){ return []; }
+}
+function saveAll(list){
+  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch(e){}
+}
+function nextId(typ){
+  const jahr = new Date().getFullYear();
+  const n = parseInt(localStorage.getItem(ZAEHLER) || "0", 10) + 1;
+  try { localStorage.setItem(ZAEHLER, String(n)); } catch(e){}
+  return (typ === "Incident" ? "INC" : "SR") + "-" + jahr + "-" + String(n).padStart(4,"0");
+}
+function fmtZeit(iso){
+  const d = new Date(iso), p = x => String(x).padStart(2,"0");
+  return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear()+" "+p(d.getHours())+":"+p(d.getMinutes());
+}
+function restzeit(v){
+  if (v.status === "erledigt") return { txt:"erledigt", cls:"" };
+  const ziel = new Date(v.erfasst).getTime() + v.zielMin * 60000;
+  const diff = ziel - Date.now();
+  const m = Math.round(Math.abs(diff) / 60000);
+  if (diff <= 0) return { txt:"ueberfaellig seit " + m + " Min", cls:"over" };
+  if (m < 60) return { txt:"noch " + m + " Min", cls: m <= 15 ? "warn" : "" };
+  return { txt:"noch " + Math.floor(m/60) + " Std " + (m%60) + " Min", cls:"" };
+}
+const zielMin = z => {
+  const m = /(\d+)/.exec(z);
+  if (!m) return 240;
+  const n = parseInt(m[1],10);
+  return z.includes("Tag") ? n*1440 : z.includes("Std") ? n*60 : n;
+};
+
+/* ---------- 6. Darstellung ---------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let aktuell = null;
 
-function render(r){
+function render(r, text){
   const color = getComputedStyle(document.documentElement).getPropertyValue(r.prio.color).trim();
-  const alt = r.alternates.length
-    ? r.alternates.map(a => `${a.cat.icon} ${a.cat.name} (${a.score})`).join(" · ")
-    : "keine";
+  const id = nextId(r.type);
+  const zm = zielMin(r.prio.ziel);
+
+  aktuell = { id, typ:r.type, kat:r.cat.name, ikon:r.cat.icon, queue:r.cat.queue,
+              prio:r.prio.p, prioLabel:r.prio.label, otrs:r.prio.otrs, ziel:r.prio.ziel,
+              zielMin:zm, conf:r.conf, text, ausloeser:r.prio.hits,
+              erfasst:new Date().toISOString(), status:"offen",
+              steps:r.cat.steps, reply:r.cat.reply, esc:r.cat.esc };
 
   $("out").innerHTML = `
     <div class="verdict">
       <div class="prio" style="background:${color}">P${r.prio.p}</div>
       <div>
         <h2>${r.cat.icon} ${esc(r.cat.name)}</h2>
-        <div class="sub">${esc(r.prio.adj)} Priorität · ${r.type}</div>
+        <div class="sub">${esc(r.prio.adj)} Prioritaet &middot; ${esc(r.type)}</div>
       </div>
     </div>
 
+    <div class="vorgang">
+      <span class="vid">${esc(id)}</span>
+      <span class="tag ${r.type === "Incident" ? "inc" : ""}">${esc(r.type)}</span>
+      <span class="tag">OTRS ${esc(r.prio.otrs)}</span>
+    </div>
+
     <div class="meta">
-      <span class="pill">SLA <b>${esc(r.prio.sla)}</b></span>
+      <span class="pill">Ziel-Reaktion <b>${esc(r.prio.ziel)}</b></span>
+      <span class="pill live" id="rest">Restzeit <b>&mdash;</b></span>
       <span class="pill">Konfidenz <b>${r.conf}%</b></span>
-      <span class="pill">Treffer <b>${r.score}</b></span>
       <span class="pill">Umfang <b>${r.chars} Zeichen</b></span>
     </div>
 
-    <h3 class="sec">Warum diese Priorität</h3>
-    <div class="esc" style="background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.28);color:#bcd9f2">
+    <h3 class="sec">Warum diese Prioritaet</h3>
+    <div class="note">
       ${esc(r.prio.why)}
-      ${r.prio.hits.length ? `<br><br><b>Auslöser:</b> ${r.prio.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join(" ")}` : ""}
+      ${r.prio.hits.length ? `<br><br><b>Ausloeser:</b> ${r.prio.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join(" ")}` : ""}
     </div>
 
     <h3 class="sec">Erkannte Signale</h3>
@@ -504,45 +560,162 @@ function render(r){
       ${r.hits.length ? r.hits.map(h=>`<span class="sig">${esc(h)}</span>`).join("") : `<span class="sig">keine</span>`}
     </div>
 
-    <h3 class="sec">Lösungsschritte</h3>
+    <h3 class="sec">Loesungsschritte</h3>
     <ol class="steps">${r.cat.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
 
-    <h3 class="sec">Antwortentwurf</h3>
+    <h3 class="sec">Rueckmeldung an die meldende Person</h3>
     <pre class="reply" id="reply">${esc(r.cat.reply)}</pre>
-    <button class="btn ghost" id="copy" style="margin-top:10px">Antwort kopieren</button>
+    <button class="btn ghost" id="copy" style="margin-top:10px">Rueckmeldung kopieren</button>
 
-    <h3 class="sec">Eskalation</h3>
+    <h3 class="sec">Weitergabe</h3>
     <div class="esc">${esc(r.cat.esc)}</div>
 
     <h3 class="sec">Alternative Kategorien</h3>
     <div class="signals">${r.alternates.length
-      ? r.alternates.map(a=>`<span class="sig">${a.cat.icon} ${esc(a.cat.name)} · ${a.score}</span>`).join("")
+      ? r.alternates.map(a=>`<span class="sig">${a.cat.icon} ${esc(a.cat.name)} &middot; ${a.score}</span>`).join("")
       : `<span class="sig">eindeutig</span>`}</div>
+
+    <h3 class="sec">Vorgang ablegen</h3>
+    <button class="btn" id="save">In Vorgangsliste uebernehmen</button>
+    <button class="btn ghost" id="export" style="margin-top:9px">OTRS-Uebergabe erzeugen</button>
   `;
   $("out").classList.add("show");
 
-  const cp = $("copy");
-  if (cp) cp.onclick = () => {
-    const txt = $("reply").textContent;
-    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
-      .then(()=>toast("Antwort kopiert"))
-      .catch(()=>{
-        const ta = document.createElement("textarea");
-        ta.value = txt; document.body.appendChild(ta); ta.select();
-        try{ document.execCommand("copy"); toast("Antwort kopiert"); }catch(e){ toast("Bitte manuell markieren"); }
-        ta.remove();
-      });
+  $("copy").onclick = () => kopiere($("reply").textContent, "Rueckmeldung kopiert");
+  $("save").onclick = () => {
+    const list = loadAll();
+    list.unshift({ ...aktuell });
+    saveAll(list);
+    aktualisiereZaehler();
+    toast("Vorgang " + aktuell.id + " abgelegt");
+    $("save").disabled = true;
+    $("save").textContent = "Abgelegt \u2713";
   };
+  $("export").onclick = () => kopiere(otrsDatensatz(aktuell), "OTRS-Uebergabe kopiert");
+
+  tickRest();
 }
 
+/* Uebergabe-Datensatz in der Feldstruktur von OTRS */
+function otrsDatensatz(v){
+  const titel = v.kat + " - " + v.text.replace(/\s+/g," ").slice(0, 68) + (v.text.length > 68 ? "..." : "");
+  return [
+    "=== OTRS - Neues Ticket ===",
+    "",
+    "Title:        " + titel,
+    "Queue:        " + v.queue,
+    "Type:         " + v.typ,
+    "Priority:     " + v.otrs,
+    "State:        new",
+    "CustomerUser: (meldende Person eintragen)",
+    "",
+    "--- Artikel (Kanal: Telefon) ---",
+    "Betreff: " + titel,
+    "",
+    v.text,
+    "",
+    "--- Interne Notiz: Ersteinschaetzung ---",
+    "Vorgangsreferenz: " + v.id,
+    "Erfasst:          " + fmtZeit(v.erfasst),
+    "Kategorie:        " + v.kat,
+    "Prioritaet:       P" + v.prio + " (" + v.prioLabel + ")  ->  OTRS " + v.otrs,
+    "Ziel-Reaktion:    " + v.ziel,
+    "Konfidenz:        " + v.conf + "%",
+    "Ausloeser:        " + (v.ausloeser.length ? v.ausloeser.join(", ") : "-"),
+    "",
+    "Loesungsschritte:",
+    ...v.steps.map((s,i) => "  " + (i+1) + ". " + s),
+    "",
+    "Weitergabe:",
+    "  " + v.esc,
+    "",
+    "Rueckmeldung (Entwurf):",
+    v.reply.split("\n").map(l => "  " + l).join("\n")
+  ].join("\n");
+}
+
+function tickRest(){
+  const el = $("rest");
+  if (!el || !aktuell) return;
+  const r = restzeit(aktuell);
+  el.innerHTML = "Restzeit <b>" + esc(r.txt) + "</b>";
+  el.style.color = r.cls === "over" ? "#ffb4b4" : r.cls === "warn" ? "#ffd9a0" : "";
+}
+
+function aktualisiereZaehler(){
+  $("cnt").textContent = String(loadAll().length);
+}
+
+function renderListe(){
+  const list = loadAll();
+  aktualisiereZaehler();
+
+  const st = $("stats");
+  if (!list.length){
+    st.innerHTML = '<div class="empty">Noch keine Vorgaenge erfasst.</div>';
+  } else {
+    const nachKat = {}, nachPrio = {};
+    for (const v of list){
+      nachKat[v.kat] = (nachKat[v.kat] || 0) + 1;
+      const k = "P" + v.prio + " " + v.prioLabel;
+      nachPrio[k] = (nachPrio[k] || 0) + 1;
+    }
+    const balken = (obj) => Object.entries(obj).sort((a,b) => b[1]-a[1]).map(([k,n]) => {
+      const pct = Math.round(n / list.length * 100);
+      return `<div class="stat-row"><span class="nm">${esc(k)}</span>
+        <span class="bar"><i style="width:${pct}%"></i></span>
+        <span class="ct">${n}</span></div>`;
+    }).join("");
+    st.innerHTML = `<div class="stat"><div class="lbl">Nach Kategorie</div>${balken(nachKat)}</div>
+      <div class="stat"><div class="lbl">Nach Prioritaet</div>${balken(nachPrio)}</div>
+      <div class="pill">Gesamt <b>${list.length}</b> Vorgaenge</div>`;
+  }
+
+  const vl = $("vlist");
+  if (!list.length){
+    vl.innerHTML = '<li class="empty">Keine Vorgaenge abgelegt.</li>';
+    return;
+  }
+  vl.innerHTML = list.map((v, i) => {
+    const r = restzeit(v);
+    const col = getComputedStyle(document.documentElement).getPropertyValue("--p" + v.prio).trim();
+    return `<li class="vitem">
+      <div class="top">
+        <span class="prio" style="background:${col};width:34px;height:34px;font-size:.78rem;border-radius:9px">P${v.prio}</span>
+        <span class="nm">${v.ikon} ${esc(v.kat)}</span>
+        <span class="tag">${esc(v.id)}</span>
+      </div>
+      <div class="tm">${esc(fmtZeit(v.erfasst))} &middot; Ziel ${esc(v.ziel)} &middot; ${esc(r.txt)}</div>
+      <div class="acts">
+        <button class="mini" data-open="${i}">OTRS-Datensatz</button>
+        <button class="mini" data-done="${i}">${v.status === "erledigt" ? "wieder oeffnen" : "erledigt"}</button>
+        <button class="mini del" data-del="${i}">loeschen</button>
+      </div>
+    </li>`;
+  }).join("");
+}
+
+function kopiere(txt, msg){
+  const fertig = () => toast(msg);
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(fertig).catch(() => fallback(txt, fertig));
+  } else fallback(txt, fertig);
+}
+function fallback(txt, fertig){
+  const ta = document.createElement("textarea");
+  ta.value = txt; ta.setAttribute("aria-hidden","true");
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); fertig(); } catch(e){ toast("Bitte manuell markieren"); }
+  ta.remove();
+}
 function toast(msg){
   const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1600);
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1800);
 }
 
-/* ---------- 6. Verdrahtung ---------- */
+/* ---------- 7. Verdrahtung ---------- */
 $("chips").innerHTML = EXAMPLES.map(([label], i) =>
-  `<span class="chip" data-i="${i}">${esc(label)}</span>`).join("");
+  `<button type="button" class="chip" data-i="${i}">${esc(label)}</button>`).join("");
 
 $("chips").addEventListener("click", e => {
   const c = e.target.closest(".chip"); if (!c) return;
@@ -553,18 +726,61 @@ $("chips").addEventListener("click", e => {
 function run(){
   const txt = $("txt").value.trim();
   if (txt.length < 8){
-    $("out").innerHTML = `<div class="empty"><div class="big">✍️</div>Bitte beschreiben Sie das Problem — mindestens ein kurzer Satz.</div>`;
+    $("out").innerHTML = '<div class="empty"><div class="big" aria-hidden="true">&#9997;&#65039;</div>' +
+      'Bitte beschreiben Sie die Stoerung oder Anforderung - mindestens ein kurzer Satz.</div>';
     $("out").classList.add("show");
     return;
   }
-  render(analyze(txt));
+  render(analyze(txt), txt);
   const el = $("out");
   if (el.scrollIntoView) el.scrollIntoView({behavior:"smooth", block:"nearest"});
 }
 
 $("go").onclick = run;
 $("clr").onclick = () => { $("txt").value = ""; $("out").classList.remove("show"); $("txt").focus(); };
-$("txt").addEventListener("keydown", e => { if (e.key==="Enter" && (e.ctrlKey||e.metaKey)) run(); });
+$("txt").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run();
+});
+
+function zeige(neu){
+  const isNeu = neu === "new";
+  $("view-new").hidden = !isNeu;
+  $("view-list").hidden = isNeu;
+  $("tab-new").setAttribute("aria-selected", String(isNeu));
+  $("tab-list").setAttribute("aria-selected", String(!isNeu));
+  if (!isNeu) renderListe();
+}
+$("tab-new").onclick = () => zeige("new");
+$("tab-list").onclick = () => zeige("list");
+
+$("vlist").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const list = loadAll();
+  if (b.dataset.open !== undefined){
+    const v = list[+b.dataset.open];
+    kopiere(otrsDatensatz(v), "OTRS-Datensatz von " + v.id + " kopiert");
+  } else if (b.dataset.done !== undefined){
+    const v = list[+b.dataset.done];
+    v.status = v.status === "erledigt" ? "offen" : "erledigt";
+    saveAll(list); renderListe();
+  } else if (b.dataset.del !== undefined){
+    const v = list[+b.dataset.del];
+    list.splice(+b.dataset.del, 1);
+    saveAll(list); renderListe();
+    toast("Vorgang " + v.id + " geloescht");
+  }
+});
+
+$("clearall").onclick = () => {
+  if (!loadAll().length) return;
+  if (confirm("Alle Vorgaenge aus der Liste entfernen? Die Eingaben werden nur lokal geloescht.")){
+    saveAll([]); renderListe(); toast("Liste geleert");
+  }
+};
+
+aktualisiereZaehler();
+setInterval(tickRest, 30000);
+
 </script>
 </body>
 </html>
