@@ -356,8 +356,8 @@ const PRIO_RULES = [
     kw:["ransomware","verschlüsselt","erpressung","datenverlust","ausfall","server down",
         "alle können nicht","keiner kann","niemand kann","komplettausfall","produktion steht",
         "gehackt","angriff","virus","malware","trojaner","notfall","kritisch",
-        "phishing","verdacht","verdächtig","geklickt","mehrere","kollegen","abteilung",
-        "standort","alle betroffen","auch betroffen","nichts geht"],
+        "phishing","verdacht","verdächtig","geklickt","mehrere","abteilung",
+        "standort","betroffen","auch bei","bei kollegen","nichts geht"],
     why:"Ausfall- oder Sicherheitssignal: betrifft mehrere Nutzer, kritische Systeme oder die Datensicherheit." },
   { p:2, label:"Hoch", adj:"Hohe", sla:"1 Std", color:"--p2",
     kw:["geschäftsführung","vorstand","chef","leitung","kunde","kundentermin","termin",
@@ -368,7 +368,8 @@ const PRIO_RULES = [
     kw:[], why:"Standardfall: einzelner Nutzer, Arbeit eingeschränkt, aber ein Ausweichweg existiert." },
   { p:4, label:"Niedrig", adj:"Niedrige", sla:"2 Tage", color:"--p4",
     kw:["wenn zeit","irgendwann","bei gelegenheit","kein stress","nice to have","optional",
-        "kosmetisch","schön wäre","nicht dringend","unwichtig"],
+        "kosmetisch","schön wäre","nicht dringend","unwichtig","ohne eile","keine eile",
+        "eilt nicht","keine eile","wenn du mal"],
     why:"Keine Beeinträchtigung der Arbeit: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
 ];
 
@@ -386,6 +387,32 @@ function hit(text, kw){
   return new RegExp("(^|[^a-z0-9])" + esc + "([^a-z0-9]|$)").test(text);
 }
 
+/* Negation: Steht unmittelbar vor einem Signalwort eine Verneinung, darf es
+   NICHT als Prioritaets-Ausloeser zaehlen — "keinen Termin" ist kein Termin-
+   druck, "nicht dringend" ist keine hohe Prioritaet.
+   Bewusst NICHT auf die Kategorie-Erkennung angewendet: "ich kann mich nicht
+   anmelden" beschreibt ein Anmelde-Problem, die Verneinung gehoert dort zum
+   Symptom. */
+const NEG = ["kein","keine","keinen","keiner","keinem","keines","ohne","nicht",
+             "nie","niemals","kaum","weder","entgegen"];
+function negated(text, kw){
+  const k = norm(kw);
+  let i = text.indexOf(k);
+  while (i !== -1){
+    /* Nur innerhalb desselben Satzes pruefen: sonst wuerde das "nicht" aus
+       "Seiten laden nicht. Kollegen sind betroffen." die Kollegen verneinen. */
+    const seg = text.slice(0, i);
+    const cut = Math.max(seg.lastIndexOf("."), seg.lastIndexOf("!"),
+                         seg.lastIndexOf("?"), seg.lastIndexOf(";"),
+                         seg.lastIndexOf(","));
+    const before = text.slice(cut + 1, i).trim().split(/\s+/).filter(Boolean).slice(-2);
+    const verneint = before.some(w => NEG.includes(w.replace(/[^a-z]/g, "")));
+    if (!verneint) return false;      // mindestens ein unverneintes Vorkommen
+    i = text.indexOf(k, i + 1);
+  }
+  return true;                        // nur verneinte Vorkommen gefunden
+}
+
 function scoreCategories(text){
   const t = norm(text);
   return KB.map(cat => {
@@ -400,7 +427,7 @@ function scoreCategories(text){
 function pickPriority(text){
   const t = norm(text);
   for (const r of PRIO_RULES){
-    const hits = r.kw.filter(k => hit(t, k));
+    const hits = r.kw.filter(k => hit(t, k) && !negated(t, k));
     if (hits.length) return { ...r, hits };
   }
   return { ...PRIO_RULES[2], hits: [] };   // Default: Mittel
