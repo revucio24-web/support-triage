@@ -29,6 +29,12 @@ Regelbasierte Engine, transparent und ohne Netz:
    geschäftskritischer Kontext (`Kundentermin`, `Frist`) P2, Wünsche ohne Zeitdruck P4.
 3. **Konfidenz** — ergibt sich aus Trefferstärke und Abstand zur zweitbesten Kategorie.
    Ohne klares Prioritätssignal sinkt sie.
+4. **Negations-Erkennung** — bei den Prioritätssignalen zählt eine Verneinung unmittelbar
+   vor dem Signalwort: „keinen **Termin**" oder „nicht **dringend**" lösen keine hohe
+   Priorität aus. Die Prüfung endet an der Satzgrenze, damit das „nicht" aus
+   „Seiten laden **nicht**. Kollegen sind betroffen." nicht die Kollegen verneint.
+   Auf die Kategorie-Erkennung wird sie bewusst **nicht** angewendet: „ich kann mich nicht
+   anmelden" beschreibt ein Anmelde-Problem — die Verneinung gehört dort zum Symptom.
 
 ## Warum regelbasiert statt KI-API
 
