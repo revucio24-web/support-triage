@@ -97,8 +97,10 @@ Regelbasierte Engine — transparent, ohne Netz:
 ## Barrierefreiheit
 
 Orientierung an den Anforderungen der BITV: Sprungmarke zum Inhalt, semantische Struktur,
-ARIA-Rollen für die Bereiche, sichtbarer Fokusrahmen, Tastaturbedienung,
-`prefers-reduced-motion` wird respektiert.
+ARIA-Rollen, sichtbarer Fokusrahmen und vollständige Tastaturbedienung — die Tabs nutzen
+Pfeiltasten/Pos1/Ende mit Roving Tabindex, Listenaktionen tragen die Vorgangsnummer im
+zugänglichen Namen, Statusmeldungen laufen über eine Live-Region. `prefers-reduced-motion`
+wird respektiert; die Kontraste wurden rechnerisch geprüft (≥ 4,5:1).
 
 ## Tests
 
@@ -112,12 +114,15 @@ node test/triage-test.mjs
 Der Test liest die Engine direkt aus `index.html` (keine Kopie) und prüft 37 Einordnungen,
 die Typ-Erkennung, die Nummernvergabe, die Offline-Garantie, eindeutige Schlüsselwörter,
 die OTRS-Übergabe, die Antwortentwürfe sowie Filter, Import-Zusammenführung und die
-sowie alle Schreibpfade unter Sperre, Trefferqualität und OTRS-Typzuordnung.
+Trefferqualität, OTRS-Typzuordnung sowie statische Prüfungen der Oberfläche.
 Node.js wird nur für die Tests benötigt, nicht für die Anwendung.
 
 ## Nutzung
 
-`index.html` im Browser öffnen. Kein Build, keine Installation.
+`index.html` im Browser öffnen. Kein Build, keine Installation. Gehostete Fassung:
+<https://revucio24-web.github.io/support-triage/> (auch dort bleiben alle Daten lokal).
+
+Betrieb, Sicherung, Datenschutz und OTRS-Anpassung: siehe [BETRIEB.md](BETRIEB.md).
 
 ## Lizenz
 

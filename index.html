@@ -118,8 +118,8 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
-    <button id="tab-new" role="tab" aria-selected="true" aria-controls="view-new">Erfassung</button>
-    <button id="tab-list" role="tab" aria-selected="false" aria-controls="view-list">Vorgänge<span class="badge" id="cnt">0</span></button>
+    <button id="tab-new" role="tab" aria-selected="true" aria-controls="view-new" tabindex="0">Erfassung</button>
+    <button id="tab-list" role="tab" aria-selected="false" aria-controls="view-list" tabindex="-1">Vorgänge<span class="badge" id="cnt">0</span></button>
   </nav>
 
   <main id="main">
@@ -1223,11 +1223,11 @@ function renderListe(){
         <div class="tm">${esc(fmtZeit(v.erfasst))} &middot; ${esc(kanal)} &middot; Ziel ${esc(v.ziel || "—")} &middot; ${esc(r.txt)}</div>
         ${v.otrsNr ? `<div class="tm">OTRS-Nummer: <b>${esc(v.otrsNr)}</b></div>` : ""}
         <div class="acts">
-          <button class="mini" data-tat="detail" data-id="${esc(v.id)}">Details</button>
-          <button class="mini" data-tat="open" data-id="${esc(v.id)}">OTRS-Datensatz</button>
-          <button class="mini" data-tat="otrs" data-id="${esc(v.id)}">OTRS-Nr.${v.otrsNr ? " ändern" : " eintragen"}</button>
-          <button class="mini" data-tat="done" data-id="${esc(v.id)}">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
-          <button class="mini del" data-tat="del" data-id="${esc(v.id)}">löschen</button>
+          <button class="mini" data-tat="detail" data-id="${esc(v.id)}" aria-label="Details zu ${esc(v.id)}">Details</button>
+          <button class="mini" data-tat="open" data-id="${esc(v.id)}" aria-label="OTRS-Datensatz für ${esc(v.id)}">OTRS-Datensatz</button>
+          <button class="mini" data-tat="otrs" data-id="${esc(v.id)}" aria-label="OTRS-Nummer für ${esc(v.id)} ${v.otrsNr ? "ändern" : "eintragen"}">OTRS-Nr.${v.otrsNr ? " ändern" : " eintragen"}</button>
+          <button class="mini" data-tat="done" data-id="${esc(v.id)}" aria-label="Status für ${esc(v.id)} ändern">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
+          <button class="mini del" data-tat="del" data-id="${esc(v.id)}" aria-label="Vorgang ${esc(v.id)} löschen">löschen</button>
         </div>
       </li>`;
     }).join("");
@@ -1255,8 +1255,8 @@ function renderKorb(){
       </div>
       <div class="tm">gelöscht ${esc(fmtZeit(v.geloeschtAm || v.erfasst))}</div>
       <div class="acts">
-        <button class="mini" data-tat="restore" data-id="${esc(v.id)}">wiederherstellen</button>
-        <button class="mini del" data-tat="kill" data-id="${esc(v.id)}">endgültig löschen</button>
+        <button class="mini" data-tat="restore" data-id="${esc(v.id)}" aria-label="Vorgang ${esc(v.id)} wiederherstellen">wiederherstellen</button>
+        <button class="mini del" data-tat="kill" data-id="${esc(v.id)}" aria-label="Vorgang ${esc(v.id)} endgültig löschen">endgültig löschen</button>
       </div>
     </li>`).join("");
 }
@@ -1286,12 +1286,12 @@ function zeigeDetail(v){
     <h3 class="sec">Weitergabe</h3>
     <div class="esc">${esc(v.esc || "")}</div>
     <div class="row" style="margin-top:14px;flex-wrap:wrap">
-      <button class="btn ghost" id="d-otrs">OTRS-Datensatz kopieren</button>
-      <button class="btn ghost" id="d-reply">Rückmeldung kopieren</button>
+    <button class="btn ghost" id="d-otrs" aria-label="OTRS-Datensatz für ${esc(v.id)} kopieren">OTRS-Datensatz kopieren</button>
+    <button class="btn ghost" id="d-reply" aria-label="Rückmeldung für ${esc(v.id)} kopieren">Rückmeldung kopieren</button>
     </div>
-    <button class="btn ghost" id="d-status" style="margin-top:9px">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
-    <button class="btn ghost" id="d-nr" style="margin-top:9px">OTRS-Nummer ${v.otrsNr ? "ändern" : "eintragen"}</button>
-    <button class="btn danger" id="d-del" style="margin-top:9px">In den Papierkorb</button>
+    <button class="btn ghost" id="d-status" style="margin-top:9px" aria-label="Status für ${esc(v.id)} ändern">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
+    <button class="btn ghost" id="d-nr" style="margin-top:9px" aria-label="OTRS-Nummer für ${esc(v.id)} ${v.otrsNr ? "ändern" : "eintragen"}">OTRS-Nummer ${v.otrsNr ? "ändern" : "eintragen"}</button>
+    <button class="btn danger" id="d-del" style="margin-top:9px" aria-label="Vorgang ${esc(v.id)} in den Papierkorb">In den Papierkorb</button>
   `;
   $("d-otrs").onclick = () => kopiere(otrsDatensatz(v), "OTRS-Datensatz von " + v.id + " kopiert");
   $("d-reply").onclick = () => kopiere(v.reply || "", "Rückmeldung kopiert");
@@ -1411,14 +1411,30 @@ $("txt").addEventListener("keydown", e => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run();
 });
 
-function zeige(neu){
+function zeige(neu, fokus){
   const isNeu = neu === "new";
   $("view-new").hidden = !isNeu;
   $("view-list").hidden = isNeu;
   $("tab-new").setAttribute("aria-selected", String(isNeu));
   $("tab-list").setAttribute("aria-selected", String(!isNeu));
+  $("tab-new").tabIndex = isNeu ? 0 : -1;
+  $("tab-list").tabIndex = isNeu ? -1 : 0;
+  if (fokus) (isNeu ? $("tab-new") : $("tab-list")).focus();
   if (!isNeu) renderListe();
 }
+function tabTasten(e, aktuell){
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Home" && e.key !== "End") return;
+  e.preventDefault();
+  let ziel;
+  if (e.key === "Home") ziel = "new";
+  else if (e.key === "End") ziel = "list";
+  else ziel = aktuell === "new" ? "list" : "new";
+  zeige(ziel, true);
+}
+$("tab-new").onclick = () => zeige("new");
+$("tab-list").onclick = () => zeige("list");
+$("tab-new").addEventListener("keydown", e => tabTasten(e, "new"));
+$("tab-list").addEventListener("keydown", e => tabTasten(e, "list"));
 $("tab-new").onclick = () => zeige("new");
 $("tab-list").onclick = () => zeige("list");
 

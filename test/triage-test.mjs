@@ -338,6 +338,17 @@ for (const cat of engine.KB) {
   }
 }
 
+/* ---------- 7. Oberfläche: Tastatur und zugängliche Namen ---------- */
+pruefe("Tabs als Tablist", html.indexOf("tablist") !== -1);
+pruefe("Roving Tabindex gesetzt", html.indexOf("tabindex") !== -1);
+pruefe("Pfeiltasten-Navigation vorhanden", html.indexOf("ArrowRight") !== -1 && html.indexOf("ArrowLeft") !== -1);
+pruefe("Details-Button mit Vorgangsnummer", html.indexOf("Details zu ") !== -1);
+pruefe("Status-Button mit Vorgangsnummer", html.indexOf("Status für ") !== -1);
+pruefe("OTRS-Button mit Vorgangsnummer", html.indexOf("OTRS-Nummer für ") !== -1);
+pruefe("Löschen mit Vorgangsnummer", html.indexOf("Vorgang ${esc(v.id)} löschen") !== -1);
+pruefe("Papierkorb mit Vorgangsnummer", html.indexOf("Vorgang ${esc(v.id)} endgültig löschen") !== -1);
+pruefe("Statusmeldung als Live-Region", html.indexOf("meldung") !== -1 && (html.match(/aria-live/g) || []).length >= 2);
+pruefe("Detaildialog vorhanden", html.indexOf("<dialog") !== -1);
 /* ---------- Ergebnis ---------- */
 console.log("");
 if (fehler === 0) {
