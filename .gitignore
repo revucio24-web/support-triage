@@ -1,0 +1,9 @@
+# Arbeits- und Sicherungsdateien
+*.bak
+*.bak-*
+.review-tmp/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini

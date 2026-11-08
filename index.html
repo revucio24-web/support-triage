@@ -42,6 +42,15 @@
   label.lbl,div.lbl{display:block;font-size:.8rem;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:9px}
   textarea{width:100%;min-height:104px;resize:vertical;background:#0d1730;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font:inherit;font-size:16px}
   textarea::placeholder{color:var(--tx3)}
+  select{width:100%;background:#0d1730;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:16px}
+  .hint{color:var(--tx3);font-size:.8rem;margin:0 0 10px;line-height:1.5}
+  .filterrow{display:flex;gap:8px;margin-top:10px}
+  .filterrow select{flex:1}
+  input[type="search"]{width:100%;background:#0d1730;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:16px}
+  dialog{border:1px solid var(--line);border-radius:16px;background:var(--bg2);color:var(--tx);max-width:640px;width:calc(100% - 24px);max-height:calc(100vh - 32px);overflow:auto;padding:18px}
+  dialog::backdrop{background:rgba(4,8,20,.72)}
+  .detail-kopf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .detail-kopf h2{margin:0;font-size:1.05rem;line-height:1.3}
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
   .chip{background:#0d1730;border:1px solid var(--line);color:var(--tx2);padding:8px 12px;border-radius:999px;font:inherit;font-size:.8rem;cursor:pointer}
   .chip:active{border-color:var(--ac);color:var(--tx)}
@@ -126,18 +135,54 @@
         <button class="btn ghost" id="clr" style="flex:0 0 96px">Leeren</button>
       </div>
     </div>
-    <section class="card" id="out" aria-live="polite" aria-label="Ergebnis der Einschätzung"></section>
+<section class="card" id="out" aria-label="Ergebnis der Einschätzung"></section>
+    <div id="meldung" class="sr" role="status" aria-live="polite"></div>
   </div>
 
-  <div id="view-list" role="tabpanel" aria-labelledby="tab-list" hidden>
+<div id="view-list" role="tabpanel" aria-labelledby="tab-list" hidden>
     <section class="card" aria-labelledby="stat-h">
       <h3 class="sec" id="stat-h" style="margin-top:0">Auswertung</h3>
       <div id="stats"><div class="empty">Noch keine Vorgänge erfasst.</div></div>
     </section>
+    <section class="card" aria-labelledby="filter-h">
+      <h3 class="sec" id="filter-h" style="margin-top:0">Suchen und filtern</h3>
+      <input type="search" id="suche" placeholder="Vorgangsnummer, Stichwort, OTRS-Nummer …" aria-label="Vorgänge durchsuchen">
+      <div class="filterrow">
+        <select id="fstatus" aria-label="Nach Status filtern">
+          <option value="">Alle Status</option>
+          <option value="offen">Offen</option>
+          <option value="erledigt">Erledigt</option>
+        </select>
+        <select id="fprio" aria-label="Nach Priorität filtern">
+          <option value="">Alle Prioritäten</option>
+          <option value="1">P1 Kritisch</option>
+          <option value="2">P2 Hoch</option>
+          <option value="3">P3 Mittel</option>
+          <option value="4">P4 Niedrig</option>
+          <option value="?">Unbewertet</option>
+        </select>
+      </div>
+<div class="hint" id="filter-info"></div>
+    </section>
     <section class="card" aria-labelledby="list-h">
       <h3 class="sec" id="list-h" style="margin-top:0">Erfasste Vorgänge</h3>
       <ul class="vlist" id="vlist"></ul>
-      <button class="btn danger" id="clearall" style="margin-top:6px">Liste leeren</button>
+      <button class="btn danger" id="clearall" style="margin-top:6px">Liste in den Papierkorb legen</button>
+    </section>
+    <section class="card" aria-labelledby="korb-h">
+      <h3 class="sec" id="korb-h" style="margin-top:0">Papierkorb <span class="badge" id="korbcnt">0</span></h3>
+      <p class="hint">Gelöschte Vorgänge bleiben lokal erhalten, bis der Papierkorb geleert wird.</p>
+      <ul class="vlist" id="korblist"></ul>
+      <button class="btn ghost" id="korbleeren" style="margin-top:6px">Papierkorb endgültig leeren</button>
+    </section>
+    <section class="card" aria-labelledby="data-h">
+      <h3 class="sec" id="data-h" style="margin-top:0">Sicherung</h3>
+      <p class="hint">Die Sicherungsdatei enthält die erfassten Meldungen im Klartext – entsprechend aufbewahren. Alles bleibt lokal, es wird nichts hochgeladen.</p>
+      <div class="row">
+        <button class="btn ghost" id="export-json">Liste sichern (JSON)</button>
+        <button class="btn ghost" id="import-json">Sicherung laden</button>
+      </div>
+      <input type="file" id="datei" accept=".json,application/json" class="sr" aria-label="Sicherungsdatei auswählen">
     </section>
   </div>
 
@@ -148,6 +193,14 @@
     Keine Uebertragung, kein Server, keine Protokollierung &middot; Eingaben bleiben auf dem Gerät
   </footer>
 </div>
+
+<dialog id="detail" aria-labelledby="detail-titel">
+  <div class="detail-kopf">
+    <h2 id="detail-titel">Vorgang</h2>
+    <button class="mini" id="detail-zu" type="button">Schließen</button>
+  </div>
+  <div id="detail-inhalt"></div>
+</dialog>
 
 <div id="toast" role="status" aria-live="polite">Kopiert</div>
 <script>
@@ -180,9 +233,9 @@ const KB = [
   {
     id:"fach", name:"Fachverfahren", icon:"\uD83D\uDDC2\uFE0F", ziel:"4 Std", queue:"IT-Support / Fachverfahren",
     kw:[["faktura",4],["hess",4],["fachverfahren",4],["einwohner",3],["meldeamt",3],
-        ["bürgerbüro",3],["bürgerbüro",3],["gewerbe",3],["bauakte",3],["wohngeld",3],
+        ["bürgerbüro",3],["gewerbe",3],["bauakte",3],["wohngeld",3],
         ["kasse",3],["standesamt",3],["verfahren",2],["programm startet nicht",3],
-        ["maske",2],["datensatz",2],["akte",2]],
+        ["maske",2],["datensatz",2],["akte",2],["akten",2]],
     steps:[
       "Verfahren genau benennen: welches Verfahren, welcher Arbeitsplatz, welches Sachgebiet?",
       "Fehlermeldung wortwörtlich erfassen (Screenshot) - Fachverfahren liefern meist einen konkreten Fehlercode.",
@@ -208,7 +261,7 @@ const KB = [
       "Fehlversuche im Protokoll prüfen - gehäufte Fehlversuche können auf einen Angriff hindeuten.",
       "Testanmeldung durchführen und bestätigen lassen."
     ],
-    reply:"Guten Tag,\n\nich habe Ihr Konto entsperrt und ein neues Kennwort vergeben. Aus Sicherheitsgründen teile ich es Ihnen nicht per E-Mail mit, sondern übergebe es Ihnen auf dem üblichen Weg.\n\nBitte ändern Sie es bei der ersten Anmeldung und beachten Sie die Kennwortrichtlinie der Verwaltung. Sollten Sie sich danach nicht anmelden können, melden Sie sich bitte kurz - dann prüfe ich die Anmeldung an den einzelnen Systemen.",
+    reply:"Guten Tag,\n\nich kümmere mich um Ihren Zugang. Bevor ich das Konto freigebe, prüfe ich Ihre Identität über die hinterlegte Dienstnummer - ich rufe Sie dafür kurz zurück.\n\nBitte nennen Sie mir dafür Ihre Durchwahl und Ihr Sachgebiet. Ein neues Kennwort übergebe ich Ihnen persönlich bzw. über den vereinbarten sicheren Weg, nicht per E-Mail.\n\nSobald das Konto wieder frei ist, melde ich mich mit der Bestätigung.",
     esc:"Sofort an die IT-Sicherheit, wenn Anmeldeversuche von fremden Adressen auftreten oder die Person eine Anmeldung nicht erkennt. Bei Verdacht auf Kontomissbrauch zusätzlich den Datenschutzbeauftragten."
   },
   {
@@ -230,7 +283,7 @@ const KB = [
   },
   {
     id:"prt", name:"Drucken & Scannen", icon:"\uD83D\uDDA8\uFE0F", ziel:"2 Std", queue:"IT-Support / Peripherie",
-    kw:[["drucker",4],["druckt",4],["papierstau",4],["toner",3],["patrone",3],
+    kw:[["drucker",4],["druckt",4],["drucken",4],["gedruckt",4],["papierstau",4],["toner",3],["patrone",3],
         ["scanner",4],["scan",3],["formular",2],["druckauftrag",4],["kopierer",3],
         ["kassendrucker",4],["bon",3]],
     steps:[
@@ -246,10 +299,12 @@ const KB = [
     esc:"An den Druckerserver-/Netzwerkbetrieb, wenn mehrere Geräte oder ein ganzes Sachgebiet betroffen sind. Bei Ausfall im Bürgerbüro zusätzlich die Sachgebietsleitung informieren."
   },
   {
-    id:"mail", name:"E-Mail & Besprechungen", icon:"\u2709\uFE0F", ziel:"2 Std", queue:"IT-Support / Mail",
+    id:"mail", name:"E-Mail, Teams & Besprechungen", icon:"\u2709\uFE0F", ziel:"2 Std", queue:"IT-Support / Mail",
     kw:[["outlook",4],["e-mail",4],["email",4],["postfach",4],["kalender",3],
         ["besprechung",3],["einladung",3],["posteingang",4],["verteiler",3],
-        ["empfangen",3],["mail",3],["senden",2]],
+        ["empfangen",3],["mail",3],["mails",3],["senden",2],
+        ["teams",5],["microsoft teams",5],["m365",5],["microsoft 365",5],
+        ["onedrive",4],["sharepoint",4],["synchronisier",3]],
     steps:[
       "Eingrenzen: Senden, Empfangen oder beides? Nur ein Ordner oder das ganze Postfach?",
       "Postfachgröße prüfen - ein volles Postfach blockiert den Empfang.",
@@ -276,7 +331,7 @@ const KB = [
       "Ersatzgerät bereitstellen, damit die Arbeit weitergeht - defektes Gerät für Garantie/Austausch erfassen.",
       "Bei Geräten mit personenbezogenen Daten vor Weitergabe an den Service die Datenträger-Vorgaben beachten."
     ],
-    reply:"Guten Tag,\n\nich habe Ihre Meldung aufgenommen. Bitte nennen Sie mir:\n\n1) Startet das Gerät noch und erscheint eine Fehlermeldung?\n2) Seit wann tritt es auf?\n\nFalls das Gerät nicht nutzbar ist, stelle ich kurzfristig ein Ersatzgerät bereit. Nennen Sie mir dafür bitte Ihren Standort und Ihr Sachgebiet.",
+    reply:"Guten Tag,\n\nvielen Dank für Ihre Meldung. Bitte nennen Sie mir:\n\n1) Startet das Gerät noch und erscheint eine Fehlermeldung?\n2) Seit wann tritt es auf?\n\nFalls das Gerät nicht nutzbar ist, prüfe ich die Bereitstellung eines Ersatzgeräts. Nennen Sie mir dafür bitte Ihren Standort und Ihr Sachgebiet.",
     esc:"An den Hardware-Service bei Garantiefällen oder Datenträgerausfall. Bei Geräten mit personenbezogenen Daten zusätzlich die Vorgaben zum Datenträgeraustausch beachten."
   },
   {
@@ -301,7 +356,7 @@ const KB = [
     kw:[["phishing",5],["virus",4],["malware",4],["ransomware",5],["verschlüsselt",4],
         ["verdacht",4],["verdächtig",4],["datenschutz",4],["datenpanne",5],["angriff",4],
         ["gehackt",4],["fremde anmeldung",4],["erpressung",5],["betrug",4],["trojaner",4],
-        ["datenabfluss",5]],
+        ["datenabfluss",5],["zertifikat",4],["dienstausweis",3],["signaturkarte",3]],
     steps:[
       "SOFORT: Gerät vom Netz trennen (Netzwerkkabel ziehen, WLAN aus) - Ausbreitung verhindern.",
       "Nichts löschen, nichts neu starten, keine Dateien öffnen - Spuren sichern.",
@@ -311,7 +366,7 @@ const KB = [
       "Bei verdächtiger E-Mail: Kopfzeilen sichern, Mail nicht weiterleiten, an die Meldeadresse geben.",
       "Vorfall dokumentieren: Zeitpunkt, Beobachtung, betroffene Systeme, bereits getroffene Maßnahmen."
     ],
-    reply:"WICHTIG: Bitte trennen Sie das Gerät sofort vom Netzwerk (Netzwerkkabel ziehen, WLAN ausschalten) und öffnen Sie keine Dateien mehr.\n\nBitte löschen Sie nichts und starten Sie das Gerät nicht neu - die Ursache muss nachvollziehbar bleiben. Ich habe den Vorfall an die IT-Sicherheit und den Datenschutz gemeldet.\n\nVielen Dank für die schnelle Meldung - genau richtig gehandelt.",
+    reply:"WICHTIG: Bitte trennen Sie das Gerät sofort vom Netzwerk (Netzwerkkabel ziehen, WLAN ausschalten) und öffnen Sie keine Dateien mehr.\n\nBitte löschen Sie nichts und starten Sie das Gerät nicht neu - die Ursache muss nachvollziehbar bleiben. Ich leite den Vorfall jetzt an die IT-Sicherheit und den Datenschutzbeauftragten weiter und melde mich mit dem weiteren Vorgehen.\n\nVielen Dank für die schnelle Meldung - genau richtig gehandelt.",
     esc:"IMMER sofort an IT-Sicherheit und Datenschutzbeauftragten - niemals selbst reparieren. Die Entscheidung ueber Meldungen an die Aufsichtsbehörde liegt bei diesen Stellen, nicht beim Erstkontakt."
   },
   {
@@ -350,7 +405,8 @@ const KB = [
   {
     id:"net", name:"Netzwerk & Verbindung", icon:"\uD83C\uDF10", ziel:"1 Std", queue:"IT-Support / Netzwerk",
     kw:[["netzwerk",4],["internet",4],["wlan",4],["vpn",4],["verbindung",3],
-        ["netzlaufwerk",3],["langsam",3],["dns",4],["timeout",3],["host nicht erreichbar",4]],
+        ["netzlaufwerk",3],["langsam",3],["dns",4],["timeout",3],["host nicht erreichbar",4],
+        ["zertifikat",2]],
     steps:[
       "Geltungsbereich klären: ein Arbeitsplatz, ein Sachgebiet oder ein Standort?",
       "Anschluss prüfen: Netzwerkkabel gesteckt, WLAN verbunden, richtiges Netz.",
@@ -362,24 +418,83 @@ const KB = [
     ],
     reply:"Guten Tag,\n\nich prüfe die Netzwerkverbindung. Bitte testen Sie kurz:\n\n1) Ist das Netzwerkkabel gesteckt bzw. sind Sie im richtigen WLAN?\n2) Betrifft es nur Ihren Platz oder auch Kolleginnen und Kollegen?\n\nBitte lassen Sie die Fehlermeldung wenn möglich stehen. Bei mehreren Betroffenen gebe ich es sofort an den Netzbetrieb weiter.",
     esc:"Sofort an den Netzbetrieb, wenn mehrere Arbeitsplätze oder ein Standort betroffen sind oder ein zentrales Verfahren nicht erreichbar ist."
+  },
+  {
+    id:"citrix", name:"Citrix & mobiles Arbeiten", icon:"\uD83C\uDFE0", ziel:"2 Std", queue:"IT-Support / Mobiles Arbeiten",
+    kw:[["citrix",5],["citrix-receiver",5],["workspace",4],["receiver",3],["remotedesktop",4],
+        ["remote desktop",4],["rds",4],["terminal server",4],["terminalserver",4],["vdi",4],
+        ["homeoffice",4],["mobiles arbeiten",5],["remotezugriff",4],["von zuhause",3],
+        ["fernzugriff",4]],
+    steps:[
+      "Eingrenzen: Startet die Sitzung nicht, bricht sie ab, oder fehlt nur eine Anwendung?",
+      "Citrix Workspace bzw. den Receiver auf Aktualität prüfen und neu starten.",
+      "Anmeldung im Portal testen - unterscheidet Konto- von Sitzungsproblem.",
+      "Netzverbindung prüfen: von zuhause VPN oder öffentliches Netz, Firewallfreigaben?",
+      "Sitzungs- und Serverstatus prüfen lassen, wenn mehrere Beschäftigte betroffen sind.",
+      "Ausweichweg benennen (anderer Arbeitsplatz, Web-Zugriff), damit die Arbeit weitergeht.",
+      "Bei Abbruch während der Arbeit: Zeitpunkt und letzte Aktion notieren."
+    ],
+    reply:"Guten Tag,\n\nich kümmere mich um Ihre Citrix-Sitzung. Bitte nennen Sie mir:\n\n1) Startet die Sitzung nicht, bricht sie während der Arbeit ab, oder fehlt nur ein Programm?\n2) Arbeiten Sie im Büro oder von zuhause?\n3) Betrifft es nur Sie oder auch Kolleginnen und Kollegen?\n\nBitte lassen Sie eine Fehlermeldung wenn möglich stehen. Ich prüfe parallel den Sitzungsstatus.",
+    esc:"An die Citrix-/Remote-Betreuung, sobald mehrere Beschäftigte oder ein ganzer Standort betroffen sind oder das Portal nicht erreichbar ist."
+  },
+  {
+    id:"kiosk", name:"Bürgerterminal & Kiosk", icon:"\uD83D\uDCF1", ziel:"2 Std", queue:"IT-Support / Bürgerterminal",
+    kw:[["bürgerterminal",5],["bürgerkiosk",5],["kiosk",4],["selbstbedienungsterminal",4],
+        ["terminalsystem",3],["aufsteller",3],["info-terminal",4],["info terminal",4],
+        ["passbildautomat",3],["wartebereich",2]],
+    steps:[
+      "Gerät und Standort klären (Foyer, Bürgerbüro, Rathaus) - Publikumsverkehr hat Vorrang.",
+      "Stromversorgung, Netzwerkkabel und Anzeige am Gerät prüfen.",
+      "Terminal neu starten und Anmeldebildschirm abwarten.",
+      "Prüfen: nur ein Gerät oder alle Terminals? Das trennt Gerät von zentralem Dienst.",
+      "Ausweichweg benennen: Nachbargerät oder Bedienung am Schalter, damit es weitergeht.",
+      "Bei zentraler Störung den Kiosk- bzw. Fachverfahrensbetrieb einschalten.",
+      "Datenschutz beachten: keine personenbezogenen Daten am Terminal einsehen oder abfotografieren."
+    ],
+    reply:"Guten Tag,\n\nich kümmere mich um das Bürgerterminal. Bitte nennen Sie mir:\n\n1) An welchem Standort steht das Gerät (Foyer, Bürgerbüro)?\n2) Zeigt es eine Fehlermeldung, oder bleibt der Bildschirm dunkel?\n3) Funktioniert ein anderes Terminal am selben Standort?\n\nFalls Bürgerinnen und Bürger am Schalter warten, melden Sie mir das bitte sofort - dann kümmere ich mich vorrangig darum und benenne ein Ausweichgerät.",
+    esc:"An den Kiosk-/Bürgerterminalbetrieb, wenn mehrere Geräte oder ein zentraler Dienst betroffen sind. Bei Ausfall im Bürgerbüro zusätzlich die Sachgebietsleitung informieren."
   }
 ];
+
+/* Kategorie für Meldungen ohne erkennbares Signal. Ohne diesen Fall würde
+   jede unklare Meldung auf den ersten Eintrag der Wissensbasis fallen. */
+const FALLBACK = {
+  id:"unklar", name:"Nicht zugeordnet", icon:"\u2753", ziel:"4 Std", queue:"IT-Support / Triage",
+  kw:[],
+  steps:[
+    "Meldung präzisieren: Was genau funktioniert nicht, seit wann, welches System?",
+    "Betroffenen Arbeitsplatz, Verfahren und Standort erfragen (Raumnummer).",
+    "Fehlermeldung wortwörtlich aufnehmen oder Screenshot anfordern.",
+    "Reichweite klären: nur eine Person oder mehrere im Sachgebiet?",
+    "Erst nach dieser Eingrenzung eine Kategorie wählen - keine Priorität aus einer unklaren Meldung ableiten.",
+    "Bei Verdacht auf Ausfall oder Sicherheitsvorfall sofort die passende Stelle einschalten."
+  ],
+  reply:"Guten Tag,\n\nvielen Dank für Ihre Meldung. Damit ich sie richtig einordnen kann, brauche ich noch zwei bis drei Angaben:\n\n1) Was genau funktioniert nicht, und seit wann?\n2) Welches Programm oder Gerät ist betroffen?\n3) Betrifft es nur Ihren Arbeitsplatz oder auch Kolleginnen und Kollegen?\n\nSobald mir diese Angaben vorliegen, ordne ich den Vorgang zu und melde mich mit dem nächsten Schritt.",
+  esc:"Noch keine Weitergabe - erst nach Eingrenzung der Meldung entscheiden, ob die Host-Betreuung, der Netzbetrieb, die IT-Sicherheit oder der Datenschutz beteiligt werden muss."
+};
 
 /* ---------- 2. Prioritätsregeln (mit OTRS-Abbildung) ---------- */
 /* OTRS-Standardprioritäten: 1 very low, 2 low, 3 normal, 4 high, 5 very high */
 const PRIO_RULES = [
   { p:1, label:"Kritisch", adj:"Kritische", ziel:"15 Min", color:"--p1", otrs:"5 very high",
-    kw:["ransomware","verschlüsselt","erpressung","datenpanne","datenabfluss","ausfall",
-        "komplettausfall","nichts geht","keiner kann","niemand kann","alle können nicht",
-        "gehackt","angriff","virus","malware","trojaner","notfall","kritisch",
-        "phishing","verdacht","verdächtig","mehrere","abteilung","standort",
-        "betroffen","wahlen","kasse steht","dasselbe problem","gleiches problem",
-        "auch betroffen","mehrere kollegen","ganzes sachgebiet"],
+    kw:["ransomware","verschlüsselt","erpressung","datenpanne","datenabfluss",
+        "komplettausfall","totalausfall","ausfall","kasse steht","notfall","kritisch",
+        "nichts geht","keiner kann","niemand kann","alle können nicht",
+        "gehackt","angriff","virus","malware","trojaner","phishing","wahlen",
+        "verdächtige mail","verdächtige e-mail","verdächtiger anhang",
+        "verdacht auf angriff","verdacht auf malware",
+        "mehrere kolleg","mehrere mitarbeit","mehrere person","mehrere plätze",
+        "mehrere arbeitsplätze","mehrere gerät","mehrere standort",
+        "mehrere sachgebiet","mehrere abteilung",
+        "auch betroffen","dasselbe problem","gleiches problem",
+        "ganze abteilung","ganzes sachgebiet","komplette abteilung",
+        "komplettes sachgebiet","ganze amt","ganzes amt","ganzen amt"],
     why:"Ausfall- oder Sicherheitssignal: mehrere Beschäftigte betroffen, Publikumsverkehr oder Datensicherheit berührt." },
   { p:2, label:"Hoch", adj:"Hohe", ziel:"1 Std", color:"--p2", otrs:"4 high",
     kw:["amtsleitung","bürgermeister","dezernat","beigeordnete","ratssitzung","ausschuss",
-        "sitzung","vorlage","frist","termin","bürgertermin","bürger","dringend","sofort",
-        "heute noch","präsentation","kundentermin","vertrag"],
+        "gremiensitzung","sitzungsvorlage","ausschusssitzung","vorlage","frist","termin",
+        "bürgertermin","kundentermin","dringend","sofort","heute noch","präsentation","vertrag",
+        "publikumsverkehr","publikumsschalter","bürgerbüro"],
     why:"Geschäftskritischer Kontext: Leitungsebene, Gremien, Bürgertermin oder Frist betroffen." },
   { p:3, label:"Mittel", adj:"Mittlere", ziel:"4 Std", color:"--p3", otrs:"3 normal",
     kw:[], why:"Standardfall: einzelne Person betroffen, Arbeit eingeschränkt, aber ein Ausweichweg besteht." },
@@ -389,6 +504,31 @@ const PRIO_RULES = [
         "eilt nicht","wenn du mal","wenn sie mal"],
     why:"Keine Beeinträchtigung: Wunsch oder kosmetisches Thema ohne Zeitdruck." }
 ];
+
+/* Ohne Zeit-, Ausfall- oder Sicherheitssignal wird keine Priorität behauptet. */
+const PRIO_UNBEWERTET = {
+  p:"?", label:"Unbewertet", adj:"Keine", ziel:"noch offen", color:"--p4", otrs:"3 normal", kw:[],
+  why:"Kein Zeit-, Ausfall- oder Sicherheitssignal erkannt. Die Priorität wird festgelegt, sobald der Vorgang eingegrenzt ist."
+};
+
+/* Absicht: Störung oder Anforderung aus der Formulierung, nicht aus der Priorität. */
+const REQUEST_KW = ["brauche","benötige","bitte um","anfrage","beantrag","bestell","freischalten",
+  "freigabe","zugriff","einrichten","neuen","neuer","neues","neuem","neue","beschaff","lizenz",
+  "installation","installier","schulung","möchte","wünsche","darf ich","kann ich","antrag"];
+const INCIDENT_KW = ["funktioniert nicht","geht nicht","kann nicht","können nicht","nicht mehr",
+  "defekt","kaputt","fehlermeldung","fehler","absturz","stürzt","gesperrt","ausfall","bricht",
+  "reagiert nicht","startet nicht","öffnet nicht","keine verbindung","verschlüsselt","virus",
+  "störung","problem","abgestürzt","hängt","kein ton","keine mails","nicht anmelden",
+  "nicht drucken","verdacht","verdächtig","bleibt leer"];
+function absicht(text, cat){
+  const t = norm(text);
+  let req = 0, inc = 0;
+  for (const k of REQUEST_KW) if (hit(t, k)) req++;
+  for (const k of INCIDENT_KW) if (hit(t, k)) inc++;
+  if (inc > req) return "Incident";
+  if (req > inc) return "Service Request";
+  return cat.id === "perm" ? "Service Request" : "Incident";
+}
 
 /* ---------- 3. Engine ---------- */
 const norm = s => s.toLowerCase()
@@ -435,33 +575,42 @@ function scoreCategories(text){
 }
 
 function pickPriority(text){
-  const t = norm(text);
+  /* "Terminal" enthält "Termin" - für die Prioritätsprüfung entschärfen,
+     damit ein Endgerät nicht als Bürgertermin gelesen wird. */
+  const t = norm(text).replace(/terminal[a-z]*/g, "endgeraet");
   for (const r of PRIO_RULES){
     const hits = r.kw.filter(k => hit(t, k) && !negated(t, k));
     if (hits.length) return { ...r, hits };
   }
-  return { ...PRIO_RULES[2], hits: [] };
+  return { ...PRIO_UNBEWERTET, hits: [] };
 }
 
 function analyze(text){
   const ranked = scoreCategories(text);
   const best = ranked[0];
   const second = ranked[1];
-  const prio = pickPriority(text);
+  let prio = pickPriority(text);
+  const unbekannt = best.score === 0;
+  const prioSignal = prio.p !== "?";
+  /* Erkannter Vorgang ohne Zeit-/Ausfallssignal bleibt Standardfall P3;
+     nur eine insgesamt unklare Meldung bleibt "unbewertet". */
+  if (!unbekannt && !prioSignal) prio = { ...PRIO_RULES[2], hits: [] };
 
-  let conf = 40;
-  if (best.score > 0){
+  let conf = 0;
+  if (!unbekannt){
     const gap = best.score - (second ? second.score : 0);
     conf = Math.min(97, 52 + best.score * 5 + gap * 9);
+    if (!prioSignal) conf = Math.max(35, conf - 12);
   }
-  if (prio.hits.length === 0) conf = Math.max(35, conf - 12);
 
-  const isReq = best.cat.id === "perm" || prio.p === 4;
+  const cat = unbekannt ? FALLBACK : best.cat;
+  const type = absicht(text, cat);
 
-  return { cat: best.cat, score: best.score, hits: best.hits,
-           alternates: ranked.slice(1,3).filter(r => r.score > 0),
+  return { cat, unbekannt, score: best.score,
+           hits: unbekannt ? [] : best.hits,
+           alternates: unbekannt ? [] : ranked.slice(1,3).filter(r => r.score > 0),
            prio, conf, chars: text.trim().length,
-           type: isReq ? "Service Request" : "Incident" };
+           type };
 }
 
 /* ---------- 4. Beispiele ---------- */
@@ -472,37 +621,270 @@ const EXAMPLES = [
   ["Phishing-Mail", "Ich habe eine verdächtige Mail bekommen und versehentlich auf den Link geklickt. Der Rechner reagiert jetzt sehr langsam."],
   ["Bürgerbüro-Drucker", "Der Drucker am Publikumsschalter druckt keine Formulare mehr, die Warteschlange staut sich und draussen warten Bürger."],
   ["Berechtigung", "Ich brauche Zugriff auf den Aktenordner meines Sachgebiets, meine Kollegin hat ihn auch."],
-  ["Kleinigkeit", "Mein Monitorkabel sitzt etwas locker, es funktioniert aber. Kein Stress, wenn Sie mal Zeit haben."]
+  ["Kleinigkeit", "Mein Monitorkabel sitzt etwas locker, es funktioniert aber. Kein Stress, wenn Sie mal Zeit haben."],
+  ["Citrix-Sitzung", "Meine Citrix-Sitzung bricht beim Start ab, ich komme von zuhause nicht an die Fachanwendungen."],
+  ["Teams startet nicht", "Teams startet nicht mehr, ich kann keine Besprechungen mehr machen."]
 ];
 
 /* ---------- 5. Vorgangsspeicher ---------- */
 const KEY = "vorgangstriage.vorgaenge";
+const KEY_KORB = "vorgangstriage.papierkorb";
 const ZAEHLER = "vorgangstriage.zaehler";
 
-function loadAll(){
-  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(e){ return []; }
+function loadAll(key){
+  try {
+    const roh = JSON.parse(localStorage.getItem(key || KEY) || "[]");
+    return Array.isArray(roh) ? roh : [];
+  } catch(e){ return []; }
 }
-function saveAll(list){
-  try { localStorage.setItem(KEY, JSON.stringify(list)); } catch(e){}
+function saveAll(list, key){
+  try { localStorage.setItem(key || KEY, JSON.stringify(list)); return true; }
+  catch(e){ toast("Speichern fehlgeschlagen: Speicher voll oder gesperrt"); return false; }
 }
-function nextId(typ){
-  const jahr = new Date().getFullYear();
-  const n = parseInt(localStorage.getItem(ZAEHLER) || "0", 10) + 1;
+function loadKorb(){ return loadAll(KEY_KORB); }
+function saveKorb(list){ return saveAll(list, KEY_KORB); }
+const SPERRE = "vorgangstriage.sperre";
+
+function leseZaehler(){
+  try { return parseInt(localStorage.getItem(ZAEHLER) || "0", 10) || 0; }
+  catch(e){ return 0; }
+}
+function schreibeZaehler(n){
   try { localStorage.setItem(ZAEHLER, String(n)); } catch(e){}
-  return (typ === "Incident" ? "INC" : "SR") + "-" + jahr + "-" + String(n).padStart(4,"0");
+}
+function naechsteNummer(){
+  return Math.max(leseZaehler(), nummerStand(loadAll()), nummerStand(loadKorb())) + 1;
+}
+function baueId(typ, n){
+  return (typ === "Incident" ? "INC" : "SR") + "-" + new Date().getFullYear() + "-" + String(n).padStart(4,"0");
+}
+function naechsteId(typ){ return baueId(typ, naechsteNummer()); }
+/* Nächste freie Nummer: Zähler, Liste und Papierkorb berücksichtigen,
+   damit auch ein zurückgesetzter Zähler keine Doppelvergabe erzeugt. */
+function freieNummer(typ, liste, korb, stand){
+  const belegt = new Set();
+  for (const v of (liste || [])) if (v && v.id) belegt.add(v.id);
+  for (const v of (korb || [])) if (v && v.id) belegt.add(v.id);
+  let n = Math.max(stand || 0, nummerStand(liste || []), nummerStand(korb || [])) + 1;
+  let id = baueId(typ, n);
+  let schutz = 0;
+  while (belegt.has(id) && schutz++ < 1000){ n++; id = baueId(typ, n); }
+  return { nummer: n, id: id };
+}
+/* Kurzzeit-Sperre für die Vergabe. Web Locks sind tabübergreifend exklusiv;
+   ohne diese API läuft eine Lease-Sperre mit Zufallstoken und Ablaufzeit. */
+function leaseSperre(aufgabe){
+  let speicherKaputt = false;
+  try { localStorage.getItem(SPERRE); } catch(e){ speicherKaputt = true; }
+  if (speicherKaputt) return Promise.resolve().then(aufgabe);
+  const token = String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+  const ablauf = Date.now() + 2000;
+  return new Promise((fertig, fehler) => {
+    let versuch = 0;
+    function probiere(){
+      let roh = null;
+      try { roh = localStorage.getItem(SPERRE); } catch(e){ roh = null; }
+      let frei = true;
+      if (roh){
+        const bis = parseInt(String(roh).split("|")[0], 10) || 0;
+        frei = bis < Date.now();
+      }
+      if (frei){
+        try { localStorage.setItem(SPERRE, ablauf + "|" + token); } catch(e){}
+        let meins = false;
+        try { meins = String(localStorage.getItem(SPERRE) || "").indexOf(token) !== -1; }
+        catch(e){ meins = true; }
+        if (meins){
+          Promise.resolve().then(aufgabe).then(fertig, fehler).finally(() => {
+            try {
+              if (String(localStorage.getItem(SPERRE) || "").indexOf(token) !== -1) localStorage.removeItem(SPERRE);
+            } catch(e){}
+          });
+          return;
+        }
+      }
+      if (++versuch >= 40){ Promise.resolve().then(aufgabe).then(fertig, fehler); return; }
+      setTimeout(probiere, 5 + Math.floor(Math.random() * 15));
+    }
+    probiere();
+  });
+}
+function mitSperre(aufgabe){
+  if (typeof navigator !== "undefined" && navigator.locks && typeof navigator.locks.request === "function"){
+    try {
+      const imSchloss = () => Promise.resolve().then(aufgabe).catch(fehler => {
+        throw { ausAufgabe: true, fehler: fehler };
+      });
+      return navigator.locks.request(SPERRE, imSchloss).catch(fehler => {
+        if (fehler && fehler.ausAufgabe) throw fehler.fehler;
+        return leaseSperre(aufgabe);
+      });
+    } catch(e){ /* Fallback unten */ }
+  }
+  return leaseSperre(aufgabe);
+}
+/* Speichern: liest den Bestand innerhalb der Sperre neu ein, ergänzt den
+   Vorgang und vergibt die Nummer erst dabei. */
+function speichereVorgang(v){
+  return mitSperre(() => {
+    const liste = loadAll();
+    const korb = loadKorb();
+    const frei = freieNummer(v.typ, liste, korb, leseZaehler());
+    const token = v.token || (String(Date.now()) + "-" + Math.random().toString(36).slice(2));
+    const neu = Object.assign({}, v, {
+      id: frei.id,
+      token: token,
+      reply: mitSignatur(v.replyBasis || "", frei.id)
+    });
+    liste.unshift(neu);
+    if (!saveAll(liste)) return { ok: false };
+    schreibeZaehler(frei.nummer);
+    return { ok: true, vorgang: neu };
+  }).then(ergebnis => repariereKollision(ergebnis));
+}
+/* Falls die Lease-Sperre parallel lief: doppelte Nummern erkennen und den
+   Verlierer (kleinstes Zufallstoken gewinnt) umnummerieren. */
+function repariereKollision(ergebnis, runde){
+  runde = runde || 0;
+  if (!ergebnis || !ergebnis.ok || runde >= 3) return Promise.resolve(ergebnis);
+  const liste = loadAll();
+  const gleich = liste.filter(v => v && v.id === ergebnis.vorgang.id);
+  if (gleich.length <= 1) return Promise.resolve(ergebnis);
+  const gewinner = gleich.map(v => String(v.token || "")).sort()[0];
+  if (String(ergebnis.vorgang.token || "") === gewinner) return Promise.resolve(ergebnis);
+  return mitSperre(() => {
+    const l = loadAll();
+    const k = loadKorb();
+    const ziel = l.find(v => v && v.token === ergebnis.vorgang.token);
+    if (!ziel) return null;
+    const frei = freieNummer(ziel.typ, l, k, leseZaehler());
+    ziel.id = frei.id;
+    ziel.reply = mitSignatur(ziel.replyBasis || "", frei.id);
+    if (!saveAll(l)) return null;
+    schreibeZaehler(frei.nummer);
+    return ziel;
+  }).then(neu => {
+    if (neu) ergebnis.vorgang = neu;
+    return repariereKollision(ergebnis, runde + 1);
+  });
+}
+function setzeZaehler(n){
+  if (!n) return;
+  if (n > leseZaehler()) schreibeZaehler(n);
+}
+
+/* Schreibpfade: Bestand innerhalb derselben Sperre neu einlesen und ändern. */
+function mitBestand(aufgabe){
+  return mitSperre(() => {
+    const liste = loadAll();
+    const korb = loadKorb();
+    return aufgabe(liste, korb);
+  });
+}
+function findeVorgang(liste, id){
+  for (const v of (liste || [])) if (v && v.id === id) return v;
+  return null;
+}
+function aendereVorgang(id, aenderung){
+  return mitBestand((liste) => {
+    const v = findeVorgang(liste, id);
+    if (!v) return null;
+    Object.assign(v, aenderung);
+    if (!saveAll(liste)) return null;
+    return v;
+  });
+}
+function schalteStatus(id){
+  return mitBestand((liste) => {
+    const v = findeVorgang(liste, id);
+    if (!v) return null;
+    v.status = v.status === "erledigt" ? "offen" : "erledigt";
+    if (!saveAll(liste)) return null;
+    return v;
+  });
+}
+function loescheVorgang(id){
+  return mitBestand((liste, korb) => {
+    const i = liste.findIndex(v => v && v.id === id);
+    if (i < 0) return null;
+    const v = liste.splice(i, 1)[0];
+    v.geloeschtAm = new Date().toISOString();
+    korb.unshift(v);
+    if (!saveKorb(korb)) return null;
+    if (!saveAll(liste)) return null;
+    return v;
+  });
+}
+function stelleWiederHer(id){
+  return mitBestand((liste, korb) => {
+    const i = korb.findIndex(v => v && v.id === id);
+    if (i < 0) return null;
+    const v = korb.splice(i, 1)[0];
+    delete v.geloeschtAm;
+    liste.unshift(v);
+    if (!saveAll(liste)) return null;
+    if (!saveKorb(korb)) return null;
+    return v;
+  });
+}
+function entferneAusKorb(id){
+  return mitBestand((liste, korb) => {
+    const i = korb.findIndex(v => v && v.id === id);
+    if (i < 0) return null;
+    const v = korb.splice(i, 1)[0];
+    if (!saveKorb(korb)) return null;
+    return v;
+  });
+}
+function leereListe(){
+  return mitBestand((liste, korb) => {
+    if (!liste.length) return 0;
+    const jetzt = new Date().toISOString();
+    const verschoben = liste.map(v => Object.assign({}, v, { geloeschtAm: jetzt }));
+    if (!saveKorb(verschoben.concat(korb))) return -1;
+    if (!saveAll([])) return -1;
+    return verschoben.length;
+  });
+}
+function leereKorb(){
+  return mitBestand((liste, korb) => {
+    if (!korb.length) return 0;
+    if (!saveKorb([])) return -1;
+    return korb.length;
+  });
+}
+function uebernehmeSicherung(daten, korbDaten){
+  return mitBestand((liste, korb) => {
+    const ergebnis = uebernehmeImport(liste, korb, daten, korbDaten);
+    if (!saveAll(ergebnis.liste)) return null;
+    if (!saveKorb(ergebnis.korb)) return null;
+    setzeZaehler(ergebnis.stand);
+    return ergebnis;
+  });
 }
 function fmtZeit(iso){
   const d = new Date(iso), p = x => String(x).padStart(2,"0");
   return p(d.getDate())+"."+p(d.getMonth()+1)+"."+d.getFullYear()+" "+p(d.getHours())+":"+p(d.getMinutes());
 }
+function zeitText(m, dativ){
+  if (m < 60) return m + " Min";
+  if (m < 1440){
+    const h = Math.floor(m/60), r = m%60;
+    return h + " Std" + (r ? " " + r + " Min" : "");
+  }
+  const d = Math.floor(m/1440), h = Math.floor((m%1440)/60);
+  const tag = d === 1 ? "1 Tag" : d + (dativ ? " Tagen" : " Tage");
+  return tag + (h ? " " + h + " Std" : "");
+}
 function restzeit(v){
   if (v.status === "erledigt") return { txt:"erledigt", cls:"" };
+  if (!v.zielMin) return { txt:"keine Frist", cls:"" };
   const ziel = new Date(v.erfasst).getTime() + v.zielMin * 60000;
   const diff = ziel - Date.now();
   const m = Math.round(Math.abs(diff) / 60000);
-  if (diff <= 0) return { txt:"überfällig seit " + m + " Min", cls:"over" };
-  if (m < 60) return { txt:"noch " + m + " Min", cls: m <= 15 ? "warn" : "" };
-  return { txt:"noch " + Math.floor(m/60) + " Std " + (m%60) + " Min", cls:"" };
+  if (diff <= 0) return { txt:"überfällig seit " + zeitText(m, true), cls:"over" };
+  if (m <= 15) return { txt:"noch " + zeitText(m, false), cls:"warn" };
+  return { txt:"noch " + zeitText(m, false), cls:"" };
 }
 const zielMin = z => {
   const m = /(\d+)/.exec(z);
@@ -511,6 +893,86 @@ const zielMin = z => {
   return z.includes("Tag") ? n*1440 : z.includes("Std") ? n*60 : n;
 };
 
+/* Reine Helfer für Filter, Sicherung und Papierkorb (ohne DOM, testbar). */
+function istVorgang(v){
+  return !!v && typeof v === "object" && typeof v.id === "string" && v.id.length > 0 &&
+         typeof v.kat === "string" && typeof v.text === "string" &&
+         !isNaN(new Date(v.erfasst).getTime());
+}
+function nummerStand(list){
+  let max = 0;
+  for (const v of (Array.isArray(list) ? list : [])){
+    const m = /-(\d+)$/.exec(v && v.id ? String(v.id) : "");
+    if (m){ const n = parseInt(m[1], 10); if (n > max) max = n; }
+  }
+  return max;
+}
+function filtereVorgaenge(list, filter){
+  const f = filter || {};
+  const teile = norm(String(f.text || "").trim())
+    .split(/\s+/)
+    .map(t => t.replace(/[^a-z0-9]/g, ""))
+    .filter(Boolean);
+  return (Array.isArray(list) ? list : []).filter(v => {
+    if (f.status && (v.status || "offen") !== f.status) return false;
+    if (f.prio && String(v.prio) !== f.prio) return false;
+    if (!teile.length) return true;
+    const heu = norm([v.id, v.kat, v.text, v.otrsNr, v.kanal, v.typ, v.prioLabel]
+      .filter(x => x !== undefined && x !== null && x !== "").map(String).join(" "))
+      .replace(/[^a-z0-9]/g, "");
+    return teile.every(t => heu.indexOf(t) !== -1);
+  });
+}
+function normalisiereVorgang(v){
+  const n = Object.assign({}, v);
+  if (n.prio === undefined || n.prio === null || n.prio === "") n.prio = "?";
+  n.prioLabel = n.prioLabel || (n.prio === "?" ? "Unbewertet" : "");
+  n.typ = n.typ === "Service Request" ? "Service Request" : "Incident";
+  n.status = n.status === "erledigt" ? "erledigt" : "offen";
+  n.ziel = n.ziel || "noch offen";
+  n.zielMin = (typeof n.zielMin === "number" && isFinite(n.zielMin)) ? n.zielMin : (n.prio === "?" ? null : 240);
+  n.conf = (typeof n.conf === "number" && isFinite(n.conf)) ? n.conf : 0;
+  n.ausloeser = Array.isArray(n.ausloeser) ? n.ausloeser : [];
+  n.steps = Array.isArray(n.steps) ? n.steps : [];
+  n.reply = typeof n.reply === "string" ? n.reply : "";
+  n.esc = typeof n.esc === "string" ? n.esc : "";
+  n.kanal = n.kanal || "Telefon";
+  n.ikon = typeof n.ikon === "string" ? n.ikon : "";
+  n.otrs = n.otrs || "3 normal";
+  n.queue = n.queue || "IT-Support / Triage";
+  n.kat = n.kat || "Nicht zugeordnet";
+  n.text = typeof n.text === "string" ? n.text : "";
+  return n;
+}
+function uebernehmeImport(liste, korb, daten, korbDaten){
+  const bestand = Array.isArray(liste) ? liste : [];
+  const korbBestand = Array.isArray(korb) ? korb : [];
+  const vorhanden = new Set(bestand.map(v => v.id));
+  const neu = (Array.isArray(daten) ? daten : []).filter(istVorgang).map(normalisiereVorgang);
+  const uebernommen = [];
+  let doppelt = 0;
+  for (const v of neu){
+    if (vorhanden.has(v.id)){ doppelt++; continue; }
+    vorhanden.add(v.id);
+    uebernommen.push(v);
+  }
+  const korbVorhanden = new Set(korbBestand.map(v => v.id));
+  const korbNeu = [];
+  for (const v of (Array.isArray(korbDaten) ? korbDaten : [])){
+    if (!istVorgang(v) || korbVorhanden.has(v.id) || vorhanden.has(v.id)) continue;
+    korbVorhanden.add(v.id);
+    korbNeu.push(normalisiereVorgang(v));
+  }
+  return { liste: uebernommen.concat(bestand), korb: korbNeu.concat(korbBestand),
+           uebernommen: uebernommen.length, doppelt: doppelt, korbUebernommen: korbNeu.length,
+           stand: nummerStand(uebernommen) };
+}
+
+function mitSignatur(text, id){
+  return text + "\n\nVorgangsnummer: " + id +
+         "\n\nMit freundlichen Grüßen\n[Name]\nIT-Support";
+}
+
 /* ---------- 6. Darstellung ---------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -518,18 +980,20 @@ let aktuell = null;
 
 function render(r, text){
   const color = getComputedStyle(document.documentElement).getPropertyValue(r.prio.color).trim();
-  const id = nextId(r.type);
-  const zm = zielMin(r.prio.ziel);
+  const id = naechsteId(r.type);
+  const zm = r.prio.p === "?" ? null : zielMin(r.prio.ziel);
+  const antwort = mitSignatur(r.cat.reply, id);
+  const prioBadge = r.prio.p === "?" ? "?" : "P" + r.prio.p;
 
   aktuell = { id, typ:r.type, kat:r.cat.name, ikon:r.cat.icon, queue:r.cat.queue,
               prio:r.prio.p, prioLabel:r.prio.label, otrs:r.prio.otrs, ziel:r.prio.ziel,
-              zielMin:zm, conf:r.conf, text, ausloeser:r.prio.hits,
+              zielMin:zm, conf:r.conf, text, ausloeser:r.prio.hits, kanal:"Telefon",
               erfasst:new Date().toISOString(), status:"offen",
-              steps:r.cat.steps, reply:r.cat.reply, esc:r.cat.esc };
+              steps:r.cat.steps, reply:antwort, replyBasis:r.cat.reply, esc:r.cat.esc };
 
   $("out").innerHTML = `
     <div class="verdict">
-      <div class="prio" style="background:${color}">P${r.prio.p}</div>
+      <div class="prio" style="background:${color}">${prioBadge}</div>
       <div>
         <h2>${r.cat.icon} ${esc(r.cat.name)}</h2>
         <div class="sub">${esc(r.prio.adj)} Priorität &middot; ${esc(r.type)}</div>
@@ -537,7 +1001,7 @@ function render(r, text){
     </div>
 
     <div class="vorgang">
-      <span class="vid">${esc(id)}</span>
+      <span class="vid" id="vid">${esc(id)}</span>
       <span class="tag ${r.type === "Incident" ? "inc" : ""}">${esc(r.type)}</span>
       <span class="tag">OTRS ${esc(r.prio.otrs)}</span>
     </div>
@@ -545,7 +1009,7 @@ function render(r, text){
     <div class="meta">
       <span class="pill">Ziel-Reaktion <b>${esc(r.prio.ziel)}</b></span>
       <span class="pill live" id="rest">Restzeit <b>&mdash;</b></span>
-      <span class="pill">Konfidenz <b>${r.conf}%</b></span>
+      <span class="pill">Konfidenz <b>${r.conf ? r.conf + "%" : "&mdash;"}</b></span>
       <span class="pill">Umfang <b>${r.chars} Zeichen</b></span>
     </div>
 
@@ -564,73 +1028,111 @@ function render(r, text){
     <ol class="steps">${r.cat.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
 
     <h3 class="sec">Rückmeldung an die meldende Person</h3>
-    <pre class="reply" id="reply">${esc(r.cat.reply)}</pre>
+    <pre class="reply" id="reply">${esc(antwort)}</pre>
     <button class="btn ghost" id="copy" style="margin-top:10px">Rückmeldung kopieren</button>
 
     <h3 class="sec">Weitergabe</h3>
     <div class="esc">${esc(r.cat.esc)}</div>
 
     <h3 class="sec">Alternative Kategorien</h3>
-    <div class="signals">${r.alternates.length
-      ? r.alternates.map(a=>`<span class="sig">${a.cat.icon} ${esc(a.cat.name)} &middot; ${a.score}</span>`).join("")
-      : `<span class="sig">eindeutig</span>`}</div>
+    <div class="signals">${r.unbekannt
+      ? `<span class="sig">keine sichere Zuordnung</span>`
+      : r.alternates.length
+        ? r.alternates.map(a=>`<span class="sig">${a.cat.icon} ${esc(a.cat.name)} &middot; ${a.score}</span>`).join("")
+        : `<span class="sig">eindeutig</span>`}</div>
 
     <h3 class="sec">Vorgang ablegen</h3>
-    <button class="btn" id="save">In Vorgangsliste uebernehmen</button>
+    <label class="lbl" for="kanal" style="margin-top:2px">Kanal der Meldung (für den OTRS-Datensatz)</label>
+    <select id="kanal">
+      <option>Telefon</option><option>E-Mail</option><option>Persönlich</option><option>Selbstbedienung</option>
+    </select>
+    <button class="btn" id="save" style="margin-top:14px">In Vorgangsliste übernehmen</button>
     <button class="btn ghost" id="export" style="margin-top:9px">OTRS-Übergabe erzeugen</button>
   `;
   $("out").classList.add("show");
+  const meldung = $("meldung");
+  if (meldung) meldung.textContent = "Einschätzung: " + r.cat.name + ", " +
+    (r.prio.p === "?" ? "Priorität unbewertet" : "Priorität P" + r.prio.p) + ", Ziel " + r.prio.ziel;
 
+  $("kanal").onchange = () => { aktuell.kanal = $("kanal").value; };
   $("copy").onclick = () => kopiere($("reply").textContent, "Rückmeldung kopiert");
-  $("save").onclick = () => {
-    const list = loadAll();
-    list.unshift({ ...aktuell });
-    saveAll(list);
+  $("save").onclick = async () => {
+    if ($("save").disabled) return;
+    aktuell.kanal = $("kanal").value;
+    $("save").disabled = true;
+    let ergebnis = null;
+    try {
+      ergebnis = await speichereVorgang(aktuell);
+    } catch(e){
+      $("save").disabled = false;
+      toast("Speichern fehlgeschlagen");
+      return;
+    }
+    if (!ergebnis || !ergebnis.ok){
+      $("save").disabled = false;
+      return;
+    }
+    aktuell = ergebnis.vorgang;
+    const vid = $("vid"); if (vid) vid.textContent = aktuell.id;
+    const pre = $("reply"); if (pre) pre.textContent = aktuell.reply;
     aktualisiereZaehler();
     toast("Vorgang " + aktuell.id + " abgelegt");
-    $("save").disabled = true;
     $("save").textContent = "Abgelegt \u2713";
   };
-  $("export").onclick = () => kopiere(otrsDatensatz(aktuell), "OTRS-Übergabe kopiert");
+  $("export").onclick = () => {
+    aktuell.kanal = $("kanal").value;
+    kopiere(otrsDatensatz(aktuell), "OTRS-Übergabe kopiert");
+  };
 
   tickRest();
 }
 
 /* Übergabe-Datensatz in der Feldstruktur von OTRS */
 function otrsDatensatz(v){
-  const titel = v.kat + " - " + v.text.replace(/\s+/g," ").slice(0, 68) + (v.text.length > 68 ? "..." : "");
+  const text = typeof v.text === "string" ? v.text : "";
+  const kat = v.kat || "Nicht zugeordnet";
+  const titel = kat + " - " + text.replace(/\s+/g," ").slice(0, 68) + (text.length > 68 ? "..." : "");
+  const kanal = v.kanal || "Telefon";
+  const otrs = v.otrs || "3 normal";
+  const prioZeile = (v.prio === "?" || v.prio === undefined) ? "P? (unbewertet, vorläufig)" : "P" + v.prio + " (" + (v.prioLabel || "ohne Label") + ")";
+  const ausloeser = Array.isArray(v.ausloeser) ? v.ausloeser : [];
+  const steps = Array.isArray(v.steps) ? v.steps : [];
+  const reply = typeof v.reply === "string" ? v.reply : "";
   return [
     "=== OTRS - Neues Ticket ===",
     "",
     "Title:        " + titel,
-    "Queue:        " + v.queue,
-    "Type:         " + v.typ,
-    "Priority:     " + v.otrs,
+    "Queue:        " + (v.queue || "IT-Support / Triage"),
+    "Type:         " + (v.typ || "Incident"),
+    "Priority:     " + otrs,
     "State:        new",
     "CustomerUser: (meldende Person eintragen)",
     "",
-    "--- Artikel (Kanal: Telefon) ---",
+    "--- Artikel (Kanal: " + kanal + ") ---",
     "Betreff: " + titel,
     "",
-    v.text,
+    text,
     "",
     "--- Interne Notiz: Ersteinschätzung ---",
     "Vorgangsreferenz: " + v.id,
     "Erfasst:          " + fmtZeit(v.erfasst),
-    "Kategorie:        " + v.kat,
-    "Priorität:       P" + v.prio + " (" + v.prioLabel + ")  ->  OTRS " + v.otrs,
-    "Ziel-Reaktion:    " + v.ziel,
-    "Konfidenz:        " + v.conf + "%",
-    "Auslöser:        " + (v.ausloeser.length ? v.ausloeser.join(", ") : "-"),
+    "Kategorie:        " + kat,
+    "Priorität:        " + prioZeile + "  ->  OTRS " + otrs,
+    "Ziel-Reaktion:    " + (v.ziel || "—"),
+    "Konfidenz:        " + (v.conf ? v.conf + "%" : "-"),
+    "Auslöser:         " + (ausloeser.length ? ausloeser.join(", ") : "-"),
+    "Kanal:            " + kanal,
     "",
     "Lösungsschritte:",
-    ...v.steps.map((s,i) => "  " + (i+1) + ". " + s),
+    ...steps.map((s,i) => "  " + (i+1) + ". " + s),
     "",
     "Weitergabe:",
-    "  " + v.esc,
+    "  " + (v.esc || ""),
     "",
     "Rückmeldung (Entwurf):",
-    v.reply.split("\n").map(l => "  " + l).join("\n")
+    reply.split("\n").map(l => "  " + l).join("\n"),
+    "",
+    "OTRS-Ticketnummer nach dem Anlegen eintragen: " + (v.otrsNr || "____________")
   ].join("\n");
 }
 
@@ -646,9 +1148,12 @@ function aktualisiereZaehler(){
   $("cnt").textContent = String(loadAll().length);
 }
 
+const FILTER = { text:"", status:"", prio:"" };
+
 function renderListe(){
   const list = loadAll();
   aktualisiereZaehler();
+  const sichtbar = filtereVorgaenge(list, FILTER);
 
   const st = $("stats");
   if (!list.length){
@@ -656,8 +1161,10 @@ function renderListe(){
   } else {
     const nachKat = {}, nachPrio = {};
     for (const v of list){
-      nachKat[v.kat] = (nachKat[v.kat] || 0) + 1;
-      const k = "P" + v.prio + " " + v.prioLabel;
+      const kategorie = v.kat || "Nicht zugeordnet";
+      nachKat[kategorie] = (nachKat[kategorie] || 0) + 1;
+      const p = v.prio === undefined ? "?" : v.prio;
+      const k = "P" + p + " " + (v.prioLabel || (p === "?" ? "Unbewertet" : ""));
       nachPrio[k] = (nachPrio[k] || 0) + 1;
     }
     const balken = (obj) => Object.entries(obj).sort((a,b) => b[1]-a[1]).map(([k,n]) => {
@@ -671,28 +1178,168 @@ function renderListe(){
       <div class="pill">Gesamt <b>${list.length}</b> Vorgänge</div>`;
   }
 
+  const info = $("filter-info");
+  if (info){
+    info.textContent = !list.length ? "" :
+      (sichtbar.length === list.length ? list.length + " Vorgänge" :
+        sichtbar.length + " von " + list.length + " Vorgängen");
+  }
+
   const vl = $("vlist");
-  if (!list.length){
-    vl.innerHTML = '<li class="empty">Keine Vorgänge abgelegt.</li>';
+  if (!sichtbar.length){
+    vl.innerHTML = '<li class="empty">' +
+      (list.length ? "Kein Vorgang passt zu Suche oder Filter." : "Keine Vorgänge abgelegt.") + '</li>';
+  } else {
+    vl.innerHTML = sichtbar.map(v => {
+      const r = restzeit(v);
+      const col = getComputedStyle(document.documentElement).getPropertyValue("--p" + v.prio).trim()
+               || getComputedStyle(document.documentElement).getPropertyValue("--p4").trim();
+      const kanal = v.kanal || "Telefon";
+      const i = list.indexOf(v);
+      return `<li class="vitem">
+        <div class="top">
+          <span class="prio" style="background:${col};width:34px;height:34px;font-size:.78rem;border-radius:9px">P${esc(v.prio === undefined ? "?" : v.prio)}</span>
+          <span class="nm">${esc(v.ikon || "")} ${esc(v.kat || "Nicht zugeordnet")}</span>
+          <span class="tag">${esc(v.id)}</span>
+        </div>
+        <div class="tm">${esc(fmtZeit(v.erfasst))} &middot; ${esc(kanal)} &middot; Ziel ${esc(v.ziel || "—")} &middot; ${esc(r.txt)}</div>
+        ${v.otrsNr ? `<div class="tm">OTRS-Nummer: <b>${esc(v.otrsNr)}</b></div>` : ""}
+        <div class="acts">
+          <button class="mini" data-tat="detail" data-id="${esc(v.id)}">Details</button>
+          <button class="mini" data-tat="open" data-id="${esc(v.id)}">OTRS-Datensatz</button>
+          <button class="mini" data-tat="otrs" data-id="${esc(v.id)}">OTRS-Nr.${v.otrsNr ? " ändern" : " eintragen"}</button>
+          <button class="mini" data-tat="done" data-id="${esc(v.id)}">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
+          <button class="mini del" data-tat="del" data-id="${esc(v.id)}">löschen</button>
+        </div>
+      </li>`;
+    }).join("");
+  }
+  renderKorb();
+}
+
+function renderKorb(){
+  const korb = loadKorb();
+  const c = $("korbcnt");
+  if (c) c.textContent = String(korb.length);
+  const kl = $("korblist");
+  if (!kl) return;
+  if (!korb.length){
+    kl.innerHTML = '<li class="empty">Papierkorb ist leer.</li>';
     return;
   }
-  vl.innerHTML = list.map((v, i) => {
-    const r = restzeit(v);
-    const col = getComputedStyle(document.documentElement).getPropertyValue("--p" + v.prio).trim();
-    return `<li class="vitem">
+  const col = getComputedStyle(document.documentElement).getPropertyValue("--p4").trim();
+  kl.innerHTML = korb.map((v, i) => `
+    <li class="vitem">
       <div class="top">
-        <span class="prio" style="background:${col};width:34px;height:34px;font-size:.78rem;border-radius:9px">P${v.prio}</span>
-        <span class="nm">${v.ikon} ${esc(v.kat)}</span>
+        <span class="prio" style="background:${col};width:34px;height:34px;font-size:.78rem;border-radius:9px">P${esc(v.prio === undefined ? "?" : v.prio)}</span>
+        <span class="nm">${esc(v.kat || "Nicht zugeordnet")}</span>
         <span class="tag">${esc(v.id)}</span>
       </div>
-      <div class="tm">${esc(fmtZeit(v.erfasst))} &middot; Ziel ${esc(v.ziel)} &middot; ${esc(r.txt)}</div>
+      <div class="tm">gelöscht ${esc(fmtZeit(v.geloeschtAm || v.erfasst))}</div>
       <div class="acts">
-        <button class="mini" data-open="${i}">OTRS-Datensatz</button>
-        <button class="mini" data-done="${i}">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
-        <button class="mini del" data-del="${i}">löschen</button>
+        <button class="mini" data-tat="restore" data-id="${esc(v.id)}">wiederherstellen</button>
+        <button class="mini del" data-tat="kill" data-id="${esc(v.id)}">endgültig löschen</button>
       </div>
-    </li>`;
-  }).join("");
+    </li>`).join("");
+}
+
+function zeigeDetail(v){
+  const dlg = $("detail");
+  if (!dlg || !v) return;
+  const prioText = (v.prio === "?" || v.prio === undefined) ? "unbewertet" : "P" + v.prio + " " + (v.prioLabel || "");
+  $("detail-titel").textContent = (v.kat || "Nicht zugeordnet") + " · " + v.id;
+  $("detail-inhalt").innerHTML = `
+    <div class="meta">
+      <span class="pill">Priorität <b>${esc(prioText)}</b></span>
+      <span class="pill">Typ <b>${esc(v.typ || "Incident")}</b></span>
+      <span class="pill">Status <b>${esc(v.status || "offen")}</b></span>
+      <span class="pill">Ziel <b>${esc(v.ziel || "—")}</b></span>
+      <span class="pill">Kanal <b>${esc(v.kanal || "Telefon")}</b></span>
+      <span class="pill">Erfasst <b>${esc(fmtZeit(v.erfasst))}</b></span>
+      ${v.otrsNr ? `<span class="pill">OTRS <b>${esc(v.otrsNr)}</b></span>` : ""}
+    </div>
+    <h3 class="sec">Meldung</h3>
+    <pre class="reply">${esc(v.text)}</pre>
+    <h3 class="sec">Lösungsschritte</h3>
+    <ol class="steps">${(v.steps || []).map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+    <h3 class="sec">Rückmeldung</h3>
+    <pre class="reply">${esc(v.reply || "")}</pre>
+    <h3 class="sec">Weitergabe</h3>
+    <div class="esc">${esc(v.esc || "")}</div>
+    <div class="row" style="margin-top:14px;flex-wrap:wrap">
+      <button class="btn ghost" id="d-otrs">OTRS-Datensatz kopieren</button>
+      <button class="btn ghost" id="d-reply">Rückmeldung kopieren</button>
+    </div>
+    <button class="btn ghost" id="d-status" style="margin-top:9px">${v.status === "erledigt" ? "wieder öffnen" : "erledigt"}</button>
+    <button class="btn ghost" id="d-nr" style="margin-top:9px">OTRS-Nummer ${v.otrsNr ? "ändern" : "eintragen"}</button>
+    <button class="btn danger" id="d-del" style="margin-top:9px">In den Papierkorb</button>
+  `;
+  $("d-otrs").onclick = () => kopiere(otrsDatensatz(v), "OTRS-Datensatz von " + v.id + " kopiert");
+  $("d-reply").onclick = () => kopiere(v.reply || "", "Rückmeldung kopiert");
+  $("d-status").onclick = async () => {
+    $("d-status").disabled = true;
+    const geaendert = await schalteStatus(v.id);
+    schliesseDetail(); renderListe();
+    if (!geaendert) toast("Vorgang nicht mehr vorhanden");
+  };
+  $("d-nr").onclick = async () => {
+    const nr = prompt("OTRS-Ticketnummer für " + v.id + " (leer lassen löscht den Eintrag):", v.otrsNr || "");
+    if (nr === null) return;
+    $("d-nr").disabled = true;
+    const geaendert = await aendereVorgang(v.id, { otrsNr: nr.trim() });
+    schliesseDetail(); renderListe();
+    toast(geaendert ? (geaendert.otrsNr ? "OTRS-Nummer gespeichert" : "OTRS-Nummer entfernt") : "Vorgang nicht mehr vorhanden");
+  };
+  $("d-del").onclick = async () => {
+    $("d-del").disabled = true;
+    const weg = await loescheVorgang(v.id);
+    schliesseDetail(); renderListe();
+    toast(weg ? "Vorgang " + weg.id + " in den Papierkorb" : "Vorgang nicht mehr vorhanden");
+  };
+  if (dlg.showModal && !dlg.open) dlg.showModal(); else dlg.setAttribute("open", "");
+}
+function schliesseDetail(){
+  const dlg = $("detail");
+  if (!dlg) return;
+  if (dlg.close && dlg.open) dlg.close(); else dlg.removeAttribute("open");
+}
+function exportiere(){
+  return mitSperre(() => {
+    try {
+      const daten = { format: "vorgangstriage", version: 1, exportiert: new Date().toISOString(),
+                      vorgaenge: loadAll(), papierkorb: loadKorb() };
+      const blob = new Blob([JSON.stringify(daten, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vorgangstriage-" + new Date().toISOString().slice(0,10) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      toast("Sicherung erstellt");
+      return true;
+    } catch(e){ toast("Sicherung konnte nicht erstellt werden"); return false; }
+  });
+}
+
+function importiereDatei(datei){
+  if (!datei) return;
+  const leser = new FileReader();
+  leser.onload = async () => {
+    try {
+      const roh = JSON.parse(String(leser.result).replace(/^\uFEFF/, ""));
+      const daten = Array.isArray(roh) ? roh : roh.vorgaenge;
+      const korbDaten = Array.isArray(roh) ? [] : (roh.papierkorb || []);
+      if (!Array.isArray(daten)) throw new Error("kein Vorgangsarray");
+      const ergebnis = await uebernehmeSicherung(daten, korbDaten);
+      if (!ergebnis){ toast("Sicherung konnte nicht übernommen werden"); return; }
+      renderListe();
+      toast(ergebnis.uebernommen + " Vorgänge übernommen, " + ergebnis.doppelt + " bereits vorhanden");
+    } catch(e){ toast("Sicherung konnte nicht gelesen werden"); }
+  };
+  leser.onerror = () => toast("Sicherung konnte nicht gelesen werden");
+  leser.readAsText(datei);
 }
 
 function kopiere(txt, msg){
@@ -728,12 +1375,15 @@ function run(){
   if (txt.length < 8){
     $("out").innerHTML = '<div class="empty"><div class="big" aria-hidden="true">&#9997;&#65039;</div>' +
       'Bitte beschreiben Sie die Störung oder Anforderung - mindestens ein kurzer Satz.</div>';
+    const meldung = $("meldung");
+    if (meldung) meldung.textContent = "Bitte beschreiben Sie die Störung oder Anforderung - mindestens ein kurzer Satz.";
     $("out").classList.add("show");
     return;
   }
   render(analyze(txt), txt);
   const el = $("out");
-  if (el.scrollIntoView) el.scrollIntoView({behavior:"smooth", block:"nearest"});
+  const ruhig = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (el.scrollIntoView) el.scrollIntoView({behavior: ruhig ? "auto" : "smooth", block:"nearest"});
 }
 
 $("go").onclick = run;
@@ -753,30 +1403,85 @@ function zeige(neu){
 $("tab-new").onclick = () => zeige("new");
 $("tab-list").onclick = () => zeige("list");
 
-$("vlist").addEventListener("click", e => {
+$("vlist").addEventListener("click", async e => {
   const b = e.target.closest("button"); if (!b) return;
-  const list = loadAll();
-  if (b.dataset.open !== undefined){
-    const v = list[+b.dataset.open];
-    kopiere(otrsDatensatz(v), "OTRS-Datensatz von " + v.id + " kopiert");
-  } else if (b.dataset.done !== undefined){
-    const v = list[+b.dataset.done];
-    v.status = v.status === "erledigt" ? "offen" : "erledigt";
-    saveAll(list); renderListe();
-  } else if (b.dataset.del !== undefined){
-    const v = list[+b.dataset.del];
-    list.splice(+b.dataset.del, 1);
-    saveAll(list); renderListe();
-    toast("Vorgang " + v.id + " gelöscht");
+  const id = b.dataset.id;
+  const tat = b.dataset.tat;
+  if (!id || !tat) return;
+  const v = findeVorgang(loadAll(), id);
+  if (tat === "detail"){ if (v) zeigeDetail(v); return; }
+  if (tat === "open"){ if (v) kopiere(otrsDatensatz(v), "OTRS-Datensatz von " + v.id + " kopiert"); return; }
+  if (tat === "otrs"){
+    if (!v) return;
+    const nr = prompt("OTRS-Ticketnummer für " + v.id + " (leer lassen löscht den Eintrag):", v.otrsNr || "");
+    if (nr === null) return;
+    b.disabled = true;
+    const geaendert = await aendereVorgang(id, { otrsNr: nr.trim() });
+    renderListe();
+    toast(geaendert ? (geaendert.otrsNr ? "OTRS-Nummer gespeichert" : "OTRS-Nummer entfernt") : "Vorgang nicht mehr vorhanden");
+    return;
+  }
+  if (tat === "done"){
+    b.disabled = true;
+    const geaendert = await schalteStatus(id);
+    renderListe();
+    if (!geaendert) toast("Vorgang nicht mehr vorhanden");
+    return;
+  }
+  if (tat === "del"){
+    b.disabled = true;
+    const weg = await loescheVorgang(id);
+    renderListe();
+    toast(weg ? "Vorgang " + weg.id + " in den Papierkorb" : "Vorgang nicht mehr vorhanden");
   }
 });
 
-$("clearall").onclick = () => {
-  if (!loadAll().length) return;
-  if (confirm("Alle Vorgänge aus der Liste entfernen? Die Eingaben werden nur lokal gelöscht.")){
-    saveAll([]); renderListe(); toast("Liste geleert");
+$("korblist").addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const id = b.dataset.id;
+  const tat = b.dataset.tat;
+  if (!id || !tat) return;
+  if (tat === "restore"){
+    b.disabled = true;
+    const wieder = await stelleWiederHer(id);
+    renderListe();
+    toast(wieder ? "Vorgang " + wieder.id + " wiederhergestellt" : "Vorgang nicht mehr vorhanden");
+  } else if (tat === "kill"){
+    b.disabled = true;
+    const weg = await entferneAusKorb(id);
+    renderListe();
+    toast(weg ? "Vorgang " + weg.id + " endgültig gelöscht" : "Vorgang nicht mehr vorhanden");
   }
+});
+
+$("clearall").onclick = async () => {
+  if (!loadAll().length) return;
+  if (!confirm("Alle Vorgänge in den Papierkorb legen? Sie können sie dort wiederherstellen.")) return;
+  const anzahl = await leereListe();
+  renderListe();
+  if (anzahl >= 0) toast(anzahl + " Vorgänge in den Papierkorb");
 };
+
+$("korbleeren").onclick = async () => {
+  if (!loadKorb().length) return;
+  if (!confirm("Papierkorb endgültig leeren? Diese Vorgänge sind danach nicht wiederherstellbar.")) return;
+  const anzahl = await leereKorb();
+  renderListe();
+  if (anzahl >= 0) toast("Papierkorb geleert");
+};
+
+$("suche").addEventListener("input", e => { FILTER.text = e.target.value; renderListe(); });
+$("fstatus").onchange = e => { FILTER.status = e.target.value; renderListe(); };
+$("fprio").onchange = e => { FILTER.prio = e.target.value; renderListe(); };
+
+$("export-json").onclick = exportiere;
+$("import-json").onclick = () => $("datei").click();
+$("datei").onchange = e => {
+  importiereDatei(e.target.files && e.target.files[0]);
+  e.target.value = "";
+};
+$("detail-zu").onclick = schliesseDetail;
+$("detail").addEventListener("cancel", schliesseDetail);
 
 aktualisiereZaehler();
 setInterval(tickRest, 30000);
