@@ -349,6 +349,40 @@ pruefe("Löschen mit Vorgangsnummer", html.indexOf("Vorgang ${esc(v.id)} lösche
 pruefe("Papierkorb mit Vorgangsnummer", html.indexOf("Vorgang ${esc(v.id)} endgültig löschen") !== -1);
 pruefe("Statusmeldung als Live-Region", html.indexOf("meldung") !== -1 && (html.match(/aria-live/g) || []).length >= 2);
 pruefe("Detaildialog vorhanden", html.indexOf("<dialog") !== -1);
+/* ---------- 8. PWA und Store-Paket ---------- */
+const repoBasis = new URL("..", import.meta.url);
+function repoDatei(name) { return fs.readFileSync(new URL(name, repoBasis)); }
+function pngGroesse(name) {
+  const b = repoDatei(name);
+  return { breite: b.readUInt32BE(16), hoehe: b.readUInt32BE(20) };
+}
+const manifest = JSON.parse(repoDatei("manifest.webmanifest").toString("utf8"));
+pruefe("Manifest: Name", manifest.name === "Vorgangs-Triage", manifest.name);
+pruefe("Manifest: Anzeige standalone", manifest.display === "standalone", manifest.display);
+pruefe("Manifest: start_url vorhanden", typeof manifest.start_url === "string" && manifest.start_url.length > 0);
+pruefe("Manifest: Icons 192 und 512", manifest.icons.some(i => i.sizes === "192x192") && manifest.icons.some(i => i.sizes === "512x512"));
+pruefe("Manifest: maskables Icon", manifest.icons.some(i => i.purpose === "maskable"));
+pruefe("Manifest: Sprache deutsch", manifest.lang === "de");
+for (const [name, datei, kante] of [
+  ["App-Icon 192", "icons/icon-192.png", 192],
+  ["App-Icon 512", "icons/icon-512.png", 512],
+  ["Maskables Icon", "icons/icon-maskable-512.png", 512],
+  ["Apple-Touch-Icon", "icons/apple-touch-icon.png", 180],
+  ["Favicon", "icons/favicon-32.png", 32],
+  ["Store-Icon 300", "store/icon-300.png", 300]
+]) {
+  const g = pngGroesse(datei);
+  pruefe(name + " ist PNG in passender Größe", g.breite === kante && g.hoehe === kante, g.breite + "x" + g.hoehe);
+}
+const swText = repoDatei("sw.js").toString("utf8");
+try { new vm.Script(swText, { filename: "sw.js" }); pruefe("Service Worker syntaktisch gültig", true); } catch (e) { pruefe("Service Worker syntaktisch gültig", false, e.message); }
+pruefe("Service Worker installiert und cached die Hülle", swText.indexOf("addEventListener(\"install\"") !== -1 && swText.indexOf("index.html") !== -1);
+pruefe("Service Worker behandelt Navigationen", swText.indexOf("mode === \"navigate\"") !== -1 && swText.indexOf("respondWith") !== -1);
+pruefe("Seite verlinkt das Manifest", html.indexOf("manifest.webmanifest") !== -1);
+pruefe("Seite registriert den Service Worker", html.indexOf("serviceWorker.register") !== -1);
+const datenschutz = repoDatei("privacy.html").toString("utf8");
+pruefe("Datenschutzseite vorhanden", datenschutz.indexOf("Datenschutz") !== -1 && datenschutz.indexOf("keine Daten") !== -1);
+pruefe("Store-Dokumentation vorhanden", fs.existsSync(new URL("STORE.md", repoBasis)));
 /* ---------- Ergebnis ---------- */
 console.log("");
 if (fehler === 0) {

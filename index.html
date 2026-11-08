@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="application-name" content="Vorgangs-Triage">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vorgangs-Triage">
 <meta name="description" content="Ersteinschätzung für IT-Vorgänge der Stadtverwaltung - läuft offline, ohne Datenübertragung.">
 <title>Vorgangs-Triage - Ersteinschätzung für IT-Vorgänge</title>
 <style>
@@ -1520,6 +1527,14 @@ $("detail").addEventListener("cancel", schliesseDetail);
 
 aktualisiereZaehler();
 setInterval(tickRest, 30000);
+
+/* ---------- 8. Installation als App (PWA) ---------- */
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator &&
+    typeof window !== "undefined" && typeof location !== "undefined" && location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
 
 </script>
 </body>

@@ -114,7 +114,7 @@ node test/triage-test.mjs
 Der Test liest die Engine direkt aus `index.html` (keine Kopie) und prüft 37 Einordnungen,
 die Typ-Erkennung, die Nummernvergabe, die Offline-Garantie, eindeutige Schlüsselwörter,
 die OTRS-Übergabe, die Antwortentwürfe sowie Filter, Import-Zusammenführung und die
-Trefferqualität, OTRS-Typzuordnung sowie statische Prüfungen der Oberfläche.
+Trefferqualität, OTRS-Typzuordnung, PWA-Manifest/Icons/Service Worker sowie statische Prüfungen der Oberfläche.
 Node.js wird nur für die Tests benötigt, nicht für die Anwendung.
 
 ## Nutzung
@@ -123,6 +123,16 @@ Node.js wird nur für die Tests benötigt, nicht für die Anwendung.
 <https://revucio24-web.github.io/support-triage/> (auch dort bleiben alle Daten lokal).
 
 Betrieb, Sicherung, Datenschutz und OTRS-Anpassung: siehe [BETRIEB.md](BETRIEB.md).
+
+Als App installieren: die gehostete Fassung in Edge/Chrome öffnen und über die
+Adressleiste „App installieren“ wählen. Unter Windows erscheint sie danach im
+Startmenü und läuft offline weiter.
+
+## Microsoft Store
+
+Die Anwendung ist als PWA vollständig für den Store vorbereitet (Manifest, Icons,
+Service Worker, Datenschutzseite). Für die Veröffentlichung sind ein Partner-Center-Konto
+und die MSIX-Verpackung über PWA Builder nötig — Schritt für Schritt in [STORE.md](STORE.md).
 
 ## Lizenz
 
