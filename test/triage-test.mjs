@@ -21,7 +21,7 @@ function abschnitt(von, bis) {
 const engineQuelle =
   abschnitt("const KB = [", "/* ---------- 6. Darstellung") + "\n" +
   abschnitt("function otrsDatensatz(v){", "function tickRest(){") + "\n" +
-  "return { analyze, KB, FALLBACK, PRIO_UNBEWERTET, otrsDatensatz, istVorgang, nummerStand, filtereVorgaenge, uebernehmeImport, saveAll, absicht, naechsteId, naechsteNummer, freieNummer, speichereVorgang, repariereKollision, leseZaehler, baueId, restzeit, loadAll, normalisiereVorgang, mitSignatur, aendereVorgang, schalteStatus, loescheVorgang, stelleWiederHer, entferneAusKorb, leereListe, leereKorb, uebernehmeSicherung, findeVorgang };";
+  "return { analyze, KB, FALLBACK, PRIO_UNBEWERTET, otrsDatensatz, istVorgang, nummerStand, filtereVorgaenge, uebernehmeImport, saveAll, absicht, naechsteId, naechsteNummer, freieNummer, speichereVorgang, repariereKollision, leseZaehler, baueId, restzeit, loadAll, normalisiereVorgang, mitSignatur, qualitaet, otrsTyp, OTRS_TYPEN, aendereVorgang, schalteStatus, loescheVorgang, stelleWiederHer, entferneAusKorb, leereListe, leereKorb, uebernehmeSicherung, findeVorgang };";
 const vollerSpeicher = { getItem: () => null, setItem: () => { throw new Error("voll"); } };
 const engine = new vm.Script("(function(){\n" + engineQuelle + "\n})()", { filename: "engine" })
   .runInNewContext({ localStorage: vollerSpeicher, toast: () => {} });
@@ -283,6 +283,27 @@ const uebernommen = await engineMitSpeicher.uebernehmeSicherung([sicherung], [])
 pruefe("Sicherung übernehmen", uebernommen && uebernommen.uebernommen === 1 && JSON.parse(speicherStand.get("vorgangstriage.vorgaenge")).length === 1);
 pruefe("Sicherung schreibt den Zähler", parseInt(speicherStand.get("vorgangstriage.zaehler"), 10) >= 42, speicherStand.get("vorgangstriage.zaehler"));
 pruefe("Sperrschlüssel bleibt nicht liegen", !speicherStand.has("vorgangstriage.sperre"));
+
+/* ---------- 4f. Trefferqualität und OTRS-Typzuordnung ---------- */
+pruefe("Qualität: unklar", engine.qualitaet(0, true).text === "unklar");
+pruefe("Qualität: schwach", engine.qualitaet(45, false).text === "schwach");
+pruefe("Qualität: mittel", engine.qualitaet(70, false).text === "mittel");
+pruefe("Qualität: klar", engine.qualitaet(90, false).text === "klar");
+const mitQualitaet = engine.analyze("Die AS/400-Sitzung bricht ab.");
+pruefe("analyze liefert Trefferqualität", mitQualitaet.qualitaet && typeof mitQualitaet.qualitaet.text === "string", JSON.stringify(mitQualitaet.qualitaet));
+const ohneQualitaet = engine.analyze("Bitte um Rueckruf.");
+pruefe("unklare Meldung: Qualität unklar", ohneQualitaet.qualitaet.text === "unklar", ohneQualitaet.qualitaet.text);
+pruefe("Normalisierung setzt Trefferqualität", normiert.qualitaet === "unklar", String(normiert.qualitaet));
+pruefe("OTRS-Typen definiert", engine.OTRS_TYPEN["Incident"] && engine.OTRS_TYPEN["Service Request"]);
+const sr = Object.assign({}, normiert, { typ: "Service Request" });
+const ds = engine.otrsDatensatz(sr);
+pruefe("OTRS-Datensatz nutzt Typzuordnung", ds.indexOf("Type:         " + engine.OTRS_TYPEN["Service Request"]) !== -1, ds.split("\n").find(l => l.indexOf("Type:") === 0));
+pruefe("OTRS-Datensatz nennt Trefferqualität", ds.indexOf("Trefferqualität:") !== -1);
+const altTyp = engine.OTRS_TYPEN["Service Request"];
+engine.OTRS_TYPEN["Service Request"] = "Request";
+const dsAngepasst = engine.otrsDatensatz(sr);
+pruefe("OTRS-Typ ist anpassbar", dsAngepasst.indexOf("Type:         Request") !== -1);
+engine.OTRS_TYPEN["Service Request"] = altTyp;
 
 /* ---------- 5. Antwortentwürfe ---------- */
 const behauptungen = ["ich habe", "Ich habe", "stelle ich kurzfristig ein Ersatzgerät bereit"];

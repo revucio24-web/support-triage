@@ -80,11 +80,19 @@ Regelbasierte Engine — transparent, ohne Netz:
    endet an der Satzgrenze. Auf die Kategorie wird sie bewusst nicht angewendet — „kann mich
    nicht anmelden“ ist ein Anmeldeproblem. `Terminal` wird bei der Priorität nicht als
    `Termin` gelesen.
-4. **Konfidenz** aus Trefferstärke und Abstand zur zweitbesten Kategorie; ohne Treffer
-   wird sie als „—“ ausgegeben statt als Zahl.
+4. **Trefferqualität** statt Prozent-Konfidenz: unklar, schwach, mittel oder klar —
+   abgeleitet aus Trefferstärke und Abstand zur zweitbesten Kategorie.
 5. **Typ** aus Absichtssignalen: „brauche“, „beantragen“, „freigeben“ sprechen für eine
    Anforderung, „funktioniert nicht“, „defekt“, „gesperrt“ für eine Störung; bei
    Gleichstand entscheidet die Kategorie.
+
+## Anpassen
+
+- **Queues** stehen je Kategorie in der Wissensbasis (`queue`).
+- **OTRS-Typen**: `OTRS_TYPEN` bildet die internen Typen auf die Werte der eigenen
+  Queue-Konfiguration ab. Znuny-Standard ist häufig `Incident`/`Request` — vor dem
+  Echtbetrieb prüfen.
+- **Prioritäts-Abbildung** auf OTRS (`5 very high` … `2 low`) steht in `PRIO_RULES`.
 
 ## Barrierefreiheit
 
@@ -104,7 +112,7 @@ node test/triage-test.mjs
 Der Test liest die Engine direkt aus `index.html` (keine Kopie) und prüft 37 Einordnungen,
 die Typ-Erkennung, die Nummernvergabe, die Offline-Garantie, eindeutige Schlüsselwörter,
 die OTRS-Übergabe, die Antwortentwürfe sowie Filter, Import-Zusammenführung und die
-Erkennung von Speicherfehlern, Zeitformate, Suche, Import-Normalisierung, Mehr-Tab-Kollisionen sowie alle Schreibpfade unter Sperre.
+sowie alle Schreibpfade unter Sperre, Trefferqualität und OTRS-Typzuordnung.
 Node.js wird nur für die Tests benötigt, nicht für die Anwendung.
 
 ## Nutzung

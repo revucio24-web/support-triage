@@ -610,7 +610,16 @@ function analyze(text){
            hits: unbekannt ? [] : best.hits,
            alternates: unbekannt ? [] : ranked.slice(1,3).filter(r => r.score > 0),
            prio, conf, chars: text.trim().length,
+           qualitaet: qualitaet(conf, unbekannt),
            type };
+}
+
+/* Qualitative Trefferqualität statt scheinpräziser Prozentwerte. */
+function qualitaet(conf, unbekannt){
+  if (unbekannt || !conf) return { stufe: "unklar", text: "unklar", rang: 0 };
+  if (conf < 55) return { stufe: "schwach", text: "schwach", rang: 1 };
+  if (conf < 80) return { stufe: "mittel", text: "mittel", rang: 2 };
+  return { stufe: "klar", text: "klar", rang: 3 };
 }
 
 /* ---------- 4. Beispiele ---------- */
@@ -932,6 +941,7 @@ function normalisiereVorgang(v){
   n.ziel = n.ziel || "noch offen";
   n.zielMin = (typeof n.zielMin === "number" && isFinite(n.zielMin)) ? n.zielMin : (n.prio === "?" ? null : 240);
   n.conf = (typeof n.conf === "number" && isFinite(n.conf)) ? n.conf : 0;
+  n.qualitaet = n.qualitaet || (n.conf ? qualitaet(n.conf, false).text : "unklar");
   n.ausloeser = Array.isArray(n.ausloeser) ? n.ausloeser : [];
   n.steps = Array.isArray(n.steps) ? n.steps : [];
   n.reply = typeof n.reply === "string" ? n.reply : "";
@@ -973,6 +983,14 @@ function mitSignatur(text, id){
          "\n\nMit freundlichen Grüßen\n[Name]\nIT-Support";
 }
 
+/* OTRS-Typzuordnung: an die Queue-Konfiguration der eigenen Instanz anpassen.
+   Znuny-Standard ist häufig "Incident"/"Request". */
+const OTRS_TYPEN = {
+  "Incident": "Incident",
+  "Service Request": "Service Request"
+};
+function otrsTyp(typ){ return OTRS_TYPEN[typ] || typ || "Incident"; }
+
 /* ---------- 6. Darstellung ---------- */
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -989,7 +1007,7 @@ function render(r, text){
               prio:r.prio.p, prioLabel:r.prio.label, otrs:r.prio.otrs, ziel:r.prio.ziel,
               zielMin:zm, conf:r.conf, text, ausloeser:r.prio.hits, kanal:"Telefon",
               erfasst:new Date().toISOString(), status:"offen",
-              steps:r.cat.steps, reply:antwort, replyBasis:r.cat.reply, esc:r.cat.esc };
+              steps:r.cat.steps, reply:antwort, replyBasis:r.cat.reply, qualitaet:r.qualitaet.text, esc:r.cat.esc };
 
   $("out").innerHTML = `
     <div class="verdict">
@@ -1009,7 +1027,7 @@ function render(r, text){
     <div class="meta">
       <span class="pill">Ziel-Reaktion <b>${esc(r.prio.ziel)}</b></span>
       <span class="pill live" id="rest">Restzeit <b>&mdash;</b></span>
-      <span class="pill">Konfidenz <b>${r.conf ? r.conf + "%" : "&mdash;"}</b></span>
+      <span class="pill">Trefferqualität <b>${esc(r.qualitaet.text)}</b></span>
       <span class="pill">Umfang <b>${r.chars} Zeichen</b></span>
     </div>
 
@@ -1103,7 +1121,7 @@ function otrsDatensatz(v){
     "",
     "Title:        " + titel,
     "Queue:        " + (v.queue || "IT-Support / Triage"),
-    "Type:         " + (v.typ || "Incident"),
+    "Type:         " + otrsTyp(v.typ),
     "Priority:     " + otrs,
     "State:        new",
     "CustomerUser: (meldende Person eintragen)",
@@ -1119,7 +1137,7 @@ function otrsDatensatz(v){
     "Kategorie:        " + kat,
     "Priorität:        " + prioZeile + "  ->  OTRS " + otrs,
     "Ziel-Reaktion:    " + (v.ziel || "—"),
-    "Konfidenz:        " + (v.conf ? v.conf + "%" : "-"),
+    "Trefferqualität:  " + (v.qualitaet || (v.conf ? qualitaet(v.conf, false).text : "unklar")) + (v.conf ? " (Rohwert " + v.conf + ")" : ""),
     "Auslöser:         " + (ausloeser.length ? ausloeser.join(", ") : "-"),
     "Kanal:            " + kanal,
     "",
@@ -1252,6 +1270,7 @@ function zeigeDetail(v){
     <div class="meta">
       <span class="pill">Priorität <b>${esc(prioText)}</b></span>
       <span class="pill">Typ <b>${esc(v.typ || "Incident")}</b></span>
+      <span class="pill">Trefferqualität <b>${esc(v.qualitaet || (v.conf ? qualitaet(v.conf, false).text : "unklar"))}</b></span>
       <span class="pill">Status <b>${esc(v.status || "offen")}</b></span>
       <span class="pill">Ziel <b>${esc(v.ziel || "—")}</b></span>
       <span class="pill">Kanal <b>${esc(v.kanal || "Telefon")}</b></span>
